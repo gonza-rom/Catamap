@@ -1,0 +1,162 @@
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    .hero {
+      height: 100vh;
+      background: url("img/home.jpg") no-repeat center center/cover;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: white;
+      position: relative;
+    }
+
+    .botones {
+        position: absolute;
+        top: 10px;
+        right: 30px;
+    }
+
+    .hero .botones button {
+        margin-left: 10px;
+        padding: 6px 14px; /* controla el "alto" y el "ancho" del botón */
+        border-radius: 15px;
+        border: none;
+        background-color: #3AA6A6;
+        color: white;
+        font-weight: bold;
+        font-size: 0.9rem; /* controla el tamaño del texto dentro */
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .hero .botones button:hover {
+        background-color: #4dc3c3;
+    }
+
+    .location {
+      margin-bottom: 15px;
+      background-color: #B85C38;
+      padding: 6px 12px;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    /* Titulo */
+    .hero h1 {
+      font-size: 4rem;
+      font-weight: 300;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+    }
+
+    .hero h1 span {
+      font-weight: 1000;
+    }
+
+    /* Subtitulo */
+    .hero p {
+      margin-top: 10px;
+      font-size: 2rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    }
+
+    /* Boton BUSCAR AHORA */
+    .hero button {
+      margin-top: 20px;
+      padding: 15px 30px;
+      font-size: 1rem;
+      background-color: #e07b38;
+      border: none;
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .hero button:hover {
+      background-color: #c5692b;
+    }
+
+    .hero button a {
+        text-decoration: none;
+        color: white;
+    }
+
+    .hero img {
+      width: 150px;
+      height: auto;
+      max-width: 80%;
+      background-color: rgba(0, 0, 0, 0.5); /* fondo translúcido */
+      padding: 5px 5px;
+      border-radius: 15px;
+      filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+
+    .footer {
+  background-color: #222;
+  color: #fff;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.footer-container {
+  max-width: 1000px;
+  margin: auto;
+  padding: 0 20px;
+}
+
+.footer-logo img {
+  height: 50px;
+  margin-bottom: 15px;
+}
+
+.footer-links {
+  margin: 10px 0;
+}
+
+.footer-links a {
+  color: #ddd;
+  margin: 0 15px;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #E07B39; /* tu naranja */
+}
+
+.footer-social {
+  margin: 15px 0;
+}
+
+.footer-social a {
+  color: #fff;
+  font-size: 1.4rem;
+  margin: 0 10px;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.footer-social a:hover {
+  color: #E07B39;
+  transform: scale(1.2);
+}
+
+.footer-copy {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  color: #aaa;
+}

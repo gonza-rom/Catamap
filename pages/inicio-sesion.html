@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Inicia sesión - Catamap</title>
+    <link rel="icon" type="image/x-icon" href="./assets/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/styles/inicio-sesion.css">
+</head>
+
+<body>
+    <div class="login-container">
+        <h2>Inicia sesión - Catamap</h2>
+        <form id="loginForm">
+            <label for="usuario">Usuario</label>
+            <input type="text" id="usuario" name="usuario" required>
+
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" required>
+
+            <div class="captcha-container">
+                <canvas id="captchaCanvas" width="120" height="50"></canvas>
+                <button type="button" class="btn-refresh" onclick="generarCaptcha()">↻</button>
+            </div>
+
+            <label for="captchaInput">Ingresa el código</label>
+            <input type="text" id="captchaInput" required>
+
+            <button type="submit" class="btn-login">Ingresar</button>
+            <!-- Después del botón "Ingresar" dentro del form -->
+            <button type="button" class="btn-refresh" onclick="window.location.href='/index.html'">Volver</button>
+
+            <p style="text-align:center; color: var(--texto);">
+                ¿No tenés cuenta?
+                <a href="registro-usuario.html"
+                    style="color: var(--terracota); text-decoration: none; font-weight: bold;">Registrate aquí</a>
+            </p>
+
+        </form>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('captchaCanvas');
+        const ctx = canvas.getContext('2d');
+        let captchaTexto = '';
+
+        function generarCaptcha() {
+            // Limpiar canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            captchaTexto = '';
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+            // Generar texto
+            for (let i = 0; i < 5; i++) {
+                captchaTexto += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+
+            // Fondo
+            ctx.fillStyle = '#3AA6A6';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Texto
+            for (let i = 0; i < captchaTexto.length; i++) {
+                ctx.font = `${20 + Math.floor(Math.random() * 10)}px Arial`;
+                ctx.fillStyle = `rgb(${Math.floor(Math.random() * 150)}, ${Math.floor(Math.random() * 150)}, ${Math.floor(Math.random() * 150)})`;
+                ctx.save();
+                const x = 10 + i * 20;
+                const y = 25 + Math.random() * 15;
+                const angle = Math.random() * 0.5 - 0.25;
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+                ctx.fillText(captchaTexto[i], 0, 0);
+                ctx.restore();
+            }
+
+            // Líneas de ruido
+            for (let i = 0; i < 5; i++) {
+                ctx.strokeStyle = `rgb(${Math.floor(Math.random() * 150)}, ${Math.floor(Math.random() * 150)}, ${Math.floor(Math.random() * 150)})`;
+                ctx.beginPath();
+                ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.stroke();
+            }
+        }
+
+        generarCaptcha();
+
+        const loginForm = document.getElementById('loginForm');
+        loginForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const userCaptcha = document.getElementById('captchaInput').value.toUpperCase();
+            if (userCaptcha === captchaTexto) {
+                alert('¡Ingreso correcto!');
+            } else {
+                alert('Captcha incorrecto. Intenta de nuevo.');
+                generarCaptcha();
+                document.getElementById('captchaInput').value = '';
+            }
+        });
+    </script>
+</body>
+
+</html>
