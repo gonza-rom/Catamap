@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Detalle del Lugar</title>
+  <link rel="stylesheet" href="/styles/mapa-catamaca.css">
+</head>
+<body>
+  <div id="contenido"></div>
+
+  <script>
+    // --- Capturar el lugar desde la URL ---
+    const params = new URLSearchParams(window.location.search);
+    const lugar = params.get("lugar");
+
+    // --- Datos de ejemplo (podés unificarlo con tu JSON) ---
+    const lugaresData = {
+      "Dique%20Las%20Pirquitas": {
+        nombre: "Dique Las Pirquitas",
+        descripcion: "Un dique histórico de Catamarca rodeado de paisajes naturales ideales para paseos y pesca.",
+        imagen: "/img/dique_pirquitas.jpg",
+        ubicacion: "-28.2706043, -65.7388552"
+      }
+    };
+
+    const data = lugaresData[lugar];
+    if (data) {
+      document.getElementById("contenido").innerHTML = `
+        <h1>${data.nombre}</h1>
+        <p>${data.descripcion}</p>
+        <img src="${data.imagen}" alt="${data.nombre}" style="width:300px;border-radius:10px;">
+        <p><b>Ubicación:</b> ${data.ubicacion}</p>
+        <a href="/pages/mapa-catamarca.html">⬅️ Volver al mapa</a>
+      `;
+    } else {
+      document.getElementById("contenido").innerHTML = `
+        <p>No se encontró información de este lugar.</p>
+        <a href="/pages/mapa-catamarca.html">⬅️ Volver al mapa</a>
+      `;
+    }
+  </script>
+</body>
+</html>
