@@ -186,23 +186,33 @@ document.addEventListener("click", e => {
   }
 });
 
-
-
-
-  // --- agregar marcadores (popups con botón que no usa onclick inline) ---
-  for (const depto in lugaresTuristicos) {
-    lugaresTuristicos[depto].forEach(lugar => {
-      const popupHTML = `
-        <b>${lugar.nombre}</b><br>
-        <small>${depto}</small><br>
-        <p>${lugar.descripcion}</p>
-        <img src="${lugar.imagen}" alt="${lugar.nombre}" style="width:150px;height:auto;border-radius:5px;margin-top:5px;"><br>
-        <button class="route-btn" data-lat="${lugar.lat}" data-lng="${lugar.lng}">🧭 Ir aquí</button>
-        <button class="detail-btn" data-id="${lugar.id}">ℹ️ Ver detalle</button>
-      `;
-      L.marker([lugar.lat, lugar.lng]).addTo(map).bindPopup(popupHTML);
+  
+// --- agregar marcadores con emojis según categoría ---
+for (const depto in lugaresTuristicos) {
+  lugaresTuristicos[depto].forEach(lugar => {
+    // 🔹 Creamos un divIcon con el emoji de la categoría
+    const icono = L.divIcon({
+      html: `<div style="font-size:30px; line-height:30px;">${lugar.icono}</div>`,
+      className: '',       // importante dejar vacío
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
     });
-  }
+
+    // 🔹 Creamos el popup
+    const popupHTML = `
+      <b>${lugar.nombre}</b><br>
+      <small>${lugar.categoria}</small><br>
+      <p>${lugar.descripcion}</p>
+      <img src="${lugar.imagen}" alt="${lugar.nombre}" style="width:150px;height:auto;border-radius:5px;margin-top:5px;"><br>
+      <button class="route-btn" data-lat="${lugar.lat}" data-lng="${lugar.lng}">🧭 Ir aquí</button>
+      <button class="detail-btn" data-id="${lugar.id}">ℹ️ Ver detalle</button>
+    `;
+
+    // 🔹 Agregamos el marcador al mapa con divIcon
+    L.marker([lugar.lat, lugar.lng], { icon: icono }).addTo(map).bindPopup(popupHTML);
+  });
+}
 
   // --- al abrir cualquier popup enganchamos el botón para trazar ruta ---
   map.on('popupopen', function(e){

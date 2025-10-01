@@ -2,8 +2,12 @@
 include '../includes/conexion.php'; 
 include '../includes/config.php';
 
+$conexion->set_charset("utf8mb4");
+
 // Consulta todos los lugares turísticos
-$sql = "SELECT id,nombre, lat, lng, descripcion, imagen, departamento FROM lugares_turisticos";
+$sql = "SELECT l.*, c.nombre AS categoria_nombre, c.icono AS categoria_icono
+        FROM lugares_turisticos l
+        LEFT JOIN categorias c ON l.id_categoria = c.id_categoria";
 $result = $conexion->query($sql);
 
 $lugares = [];
@@ -13,13 +17,15 @@ while ($row = $result->fetch_assoc()) {
         $lugares[$depto] = [];
     }
     $lugares[$depto][] = [
-        'id' => $row['id'],
-        'nombre' => $row['nombre'],
-        'lat' => floatval($row['lat']),
-        'lng' => floatval($row['lng']),
-        'descripcion' => $row['descripcion'],
-        'imagen' => $row['imagen']
-    ];
+    'id' => $row['id'],
+    'nombre' => $row['nombre'],
+    'lat' => floatval($row['lat']),
+    'lng' => floatval($row['lng']),
+    'descripcion' => $row['descripcion'],
+    'imagen' => $row['imagen'],
+    'categoria' => $row['categoria_nombre'],   // ✅ nombre de la categoría
+    'icono' => $row['categoria_icono']         // ✅ ícono de la categoría
+];
 }
 ?>
 <!DOCTYPE html>
@@ -57,7 +63,7 @@ while ($row = $result->fetch_assoc()) {
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
   <script>
-  const lugaresTuristicos = <?php echo json_encode($lugares); ?>;
+  const lugaresTuristicos = <?php echo json_encode($lugares, JSON_UNESCAPED_UNICODE); ?>;
   console.log(lugaresTuristicos); // comprobación en consola
   </script>
   <script src="../scripts/mapa-catamarca.js"></script>
