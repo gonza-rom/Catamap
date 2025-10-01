@@ -160,3 +160,35 @@
   font-size: 0.9rem;
   color: #aaa;
 }
+
+
+/* Navbar */
+.navbar {
+  background-color: #3AA6A6;
+  padding: 10px 20px;
+  color: white;
+}
+
+.navbar-container {
+  max-width: 1200px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar .logo img {
+  height: 50px;
+}
+
+.navbar .menu a {
+  margin-left: 20px;
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.navbar .menu a:hover {
+  color: #E07B39;
+}

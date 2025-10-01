@@ -1,3 +1,6 @@
+// Si en algún momento cambias la carpeta del proyecto, puedes definir una variable base al inicio de tu JS:
+const BASE_URL = '/catamap';
+
 // Inicializar mapa
   const map = L.map('map');
 
@@ -32,22 +35,6 @@
   };
 
   L.control.layers(baseMaps).addTo(map);
-
-// // --- datos de ejemplo (tus lugares) ---
-//   let lugaresTuristicos = {
-//     "FRAY MAMERTO ESQUIU":[
-//       { nombre:"Dique Las Pirquitas", lat:-28.2706043, lng:-65.7388552, descripcion:"Dique histórico", imagen:"../img-catamarca/pirquitas.jpeg" },
-//       { nombre:"Huillapima", lat:-28.7259661, lng:-65.9783433, descripcion:"Paisajes naturales", imagen:"img/huillapima.jpg" }
-//     ],
-//     "BELEN":[
-//       { nombre:"Ruinas de Shincal de Quimivil", lat:-27.6875216, lng:-67.1807849, descripcion:"Ruinas arqueológicas", imagen:"img/shincal.jpg" },
-//       { nombre:"Tejidos Artesanales", lat:-27.1150, lng:-66.8810, descripcion:"Talleres tradicionales", imagen:"img/tejidos_belen.jpg" }
-//     ],
-//     "CAPITAL":[
-//       { nombre:"Dique El Jumeal", lat:-28.4565063, lng:-65.8091802, descripcion:"Dique recreativo", imagen:"../img-catamarca/dique-el-jumeal.webp" },
-//       { nombre:"Catedral Basílica de Nuestra Señora del Valle", lat:-28.4688896, lng:-65.7798856, descripcion:"Catedral histórica", imagen:"../img-catamarca/catedral-basilica.webp" }
-//     ]
-//   };
 
   // --- variables de ruta / usuario ---
   let ubicacionUsuario = null;
@@ -85,7 +72,7 @@ map.on('locationerror', () => {
       return;
     }
     if (!L || !L.Routing) {
-      alert('⚠️ Routing Machine no está disponible. Revisa la consola y el orden de scripts.');
+      alert('⚠️ Routing Machine n o está disponible. Revisa la consola y el orden de scripts.');
       return;
     }
     // limpiar ruta anterior
@@ -124,38 +111,49 @@ map.on('locationerror', () => {
     })
     .catch(err => console.error('Error cargando GeoJSON:', err));
 
-// --- cargar GeoJSON y mascara (como tenías) ---
+// --- cargar GeoJSON y máscara ---
 fetch('../data/departamentos-catamarca.json')
   .then(r => r.json())
   .then(geojson => {
     const geojsonLayer = L.geoJSON(geojson, {
       style: { color:'#000', weight:1, fillColor:'#66bb6a', fillOpacity:0.6 },
       onEachFeature: (feature, layer) => {
-        // 🔹 Hover visual
+
+        // Hover visual
         layer.on('mouseover', () => layer.setStyle({ fillColor:'#E07B39', fillOpacity:0 }) );
         layer.on('mouseout', () => geojsonLayer.resetStyle(layer) );
 
-        // 🔹 Al hacer clic en un departamento mostramos lugares
+        // Click en departamento
         layer.on('click', () => {
-          const depto = feature.properties.departamento.toUpperCase(); // ajusta al campo de tu GeoJSON
+          const depto = feature.properties.departamento.toUpperCase();
           if (lugaresTuristicos[depto]) {
-            let html = `<h4>${depto}</h4>`;
+
+            let html = `<h4>${depto}</h4><div class="popup-content">`;
             lugaresTuristicos[depto].forEach(lugar => {
               html += `
-                <div style="margin:5px 0; border-bottom:1px solid #ccc; padding-bottom:5px;">
+                <div class="popup-lugar">
                   <b>${lugar.nombre}</b><br>
                   <small>${lugar.descripcion}</small><br>
-                  <img src="${lugar.imagen}" style="width:120px; border-radius:5px; margin-top:3px;"><br>
+                  <img src="${lugar.imagen}" alt="${lugar.nombre}" style="width:120px; border-radius:5px; margin-top:3px;"><br>
                   <button class="route-btn" data-lat="${lugar.lat}" data-lng="${lugar.lng}">🧭 Ir aquí</button>
-                  <button class="detail-btn" data-nombre="${encodeURIComponent(lugar.nombre)}">ℹ️ Ver detalle</button>
+                  <button class="detail-btn" data-id="${lugar.id}">ℹ️ Ver detalle</button>
                 </div>
               `;
             });
-            layer.bindPopup(html).openPopup();
+            html += `</div>`; // cierre popup-content
+
+            // bindPopup con scroll y maxWidth / maxHeight
+            layer.bindPopup(html, {
+              maxWidth: 300,
+              maxHeight: 350,
+              className: 'custom-popup'
+            }).openPopup();
+
           } else {
             layer.bindPopup(`<b>${depto}</b><br>No hay lugares turísticos cargados.`).openPopup();
           }
         });
+
       }
     }).addTo(map);
 
@@ -172,6 +170,24 @@ fetch('../data/departamentos-catamarca.json')
   .catch(err => console.error('Error cargando GeoJSON:', err));
 
 
+// --- Delegación global para los botones ---
+document.addEventListener("click", e => {
+  // Botón de detalle
+  if (e.target.classList.contains("detail-btn")) {
+    const id = e.target.dataset.id;
+    window.location.href = `${BASE_URL}/pages/detalle-lugar.php?id=${id}`;
+  }
+
+  // Botón de ruta
+  if (e.target.classList.contains("route-btn")) {
+    const lat = parseFloat(e.target.dataset.lat);
+    const lng = parseFloat(e.target.dataset.lng);
+    window.trazarRuta(lat, lng);
+  }
+});
+
+
+
 
   // --- agregar marcadores (popups con botón que no usa onclick inline) ---
   for (const depto in lugaresTuristicos) {
@@ -182,7 +198,7 @@ fetch('../data/departamentos-catamarca.json')
         <p>${lugar.descripcion}</p>
         <img src="${lugar.imagen}" alt="${lugar.nombre}" style="width:150px;height:auto;border-radius:5px;margin-top:5px;"><br>
         <button class="route-btn" data-lat="${lugar.lat}" data-lng="${lugar.lng}">🧭 Ir aquí</button>
-        <button class="detail-btn" data-nombre="${encodeURIComponent(lugar.nombre)}">ℹ️ Ver detalle</button>
+        <button class="detail-btn" data-id="${lugar.id}">ℹ️ Ver detalle</button>
       `;
       L.marker([lugar.lat, lugar.lng]).addTo(map).bindPopup(popupHTML);
     });
@@ -206,9 +222,7 @@ fetch('../data/departamentos-catamarca.json')
     }
   });
 
-  // --- control + modal + sidebar (tu implementación) ---
-  // (dejo intacto lo que ya tenías para + y sidebar)
-  // ...
+
     // 🔹 Crear control hamburguesa
 const hamburgerControl = L.control({ position: "topleft" }); // "topleft" lo pone arriba izquierda
 
@@ -317,9 +331,8 @@ map.on('popupopen', function(e){
     const btnDetail = el.querySelector('.detail-btn');
     if (btnDetail) {
       btnDetail.addEventListener('click', function handler(){
-        const nombre = this.dataset.nombre;
-        // Redirigir a otra página con query string
-        window.location.href = `/pages/detalle.html?lugar=${nombre}`;
+        const id = this.dataset.id; // toma el id correcto del atributo data-id
+        window.location.href = `${BASE_URL}/pages/detalle-lugar.php?id=${id}`;
       }, { once: true });
     }
 

@@ -1,8 +1,9 @@
 <?php
 include '../includes/conexion.php'; 
+include '../includes/config.php';
 
 // Consulta todos los lugares turísticos
-$sql = "SELECT nombre, lat, lng, descripcion, imagen, departamento FROM lugares_turisticos";
+$sql = "SELECT id,nombre, lat, lng, descripcion, imagen, departamento FROM lugares_turisticos";
 $result = $conexion->query($sql);
 
 $lugares = [];
@@ -12,6 +13,7 @@ while ($row = $result->fetch_assoc()) {
         $lugares[$depto] = [];
     }
     $lugares[$depto][] = [
+        'id' => $row['id'],
         'nombre' => $row['nombre'],
         'lat' => floatval($row['lat']),
         'lng' => floatval($row['lng']),
@@ -45,30 +47,12 @@ while ($row = $result->fetch_assoc()) {
         <h3>Menú</h3>
         <span id="closeSidebar">&times;</span> <!-- Botón de cerrar -->
       </div>
-      <a href="/index.html">Inicio</a>
-      <a href="/pages/mapa-catamarca.html">Mapa</a>
-      <a href="/pages/contacto.html">Contacto</a>
-      <a href="/pages/inicio-sesion.html">Iniciar Sesión</a>
+      <a href="<?php echo BASE_URL; ?>/index.php">Inicio</a>
+            <a href="<?php echo BASE_URL; ?>/pages/mapa-catamarca.php">Mapa</a>
+            <a href="<?php echo BASE_URL; ?>/pages/contacto.html">Contacto</a>
+            <a href="<?php echo BASE_URL; ?>/pages/inicio-sesion.html">Iniciar Sesión</a>
+            <a href="<?php echo BASE_URL; ?>/pages/registro-usuario.html">Registrarme</a>
     </div>
-   <footer class="footer">
-    <div class="footer-container">
-        <div class="footer-logo">
-        <img src="../img/CATAMAP.png" alt="Catamap Logo">
-        </div>
-        <div class="footer-links">
-        <a href="/index.html">Inicio</a>
-        <a href="/pages/mapa-catamarca.html">Mapa</a>
-        <a href="/pages/contacto.html">Contacto</a>
-        </div>
-        <div class="footer-social">
-        <a href="#"><i class="fab fa-facebook-f"></i></a>
-        <a href="#"><i class="fab fa-instagram"></i></a>
-        <a href="#"><i class="fab fa-x-twitter"></i></a>
-        </div>
-        <p class="footer-copy">© 2025 CATAMAP - Todos los derechos reservados</p>
-    </div>
-    </footer>
-
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>

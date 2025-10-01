@@ -170,3 +170,64 @@ body {
   font-size: 0.9rem;
   color: #aaa;
 }
+
+
+/* Scroll interno para popups con muchos lugares */
+.leaflet-popup.custom-popup .popup-content {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Cada lugar */
+.leaflet-popup.custom-popup .popup-lugar {
+  margin: 5px 0;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 5px;
+}
+
+/* Imagen de cada lugar */
+.leaflet-popup.custom-popup .popup-lugar img {
+  width: 100px;
+  height: auto;
+  border-radius: 5px;
+  margin-top: 3px;
+}
+
+/* Botones de popup */
+.leaflet-popup.custom-popup .popup-lugar button {
+  margin-top: 3px;
+  margin-right: 5px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  background-color: #3AA6A6;
+  color: white;
+  transition: background 0.3s ease;
+}
+
+.leaflet-popup.custom-popup .popup-lugar button:hover {
+  background-color: #4dc3c3;
+}
+
+
+/* Popup personalizado */
+.custom-popup .popup-content {
+  max-height: 300px; /* altura máxima del contenido */
+  overflow-y: auto;  /* scroll si hay mucho contenido */
+}
+
+.custom-popup .popup-lugar {
+  margin-bottom: 8px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 5px;
+}
+
+.custom-popup .popup-lugar img {
+  width: 100px;      /* ancho máximo de la imagen */
+  height: auto;      /* mantiene proporción */
+  border-radius: 5px;
+  margin-top: 3px;
+  display: block;
+}
