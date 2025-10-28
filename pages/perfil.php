@@ -2,6 +2,7 @@
 session_start();
 require_once '../config/database.php';
 require_once '../classes/Usuario.php';
+require_once '../includes/conexion.php';
 
 // Verificar sesión
 if(!isset($_SESSION['user_id']) || !isset($_SESSION['token'])) {
@@ -32,6 +33,19 @@ $usuario_data = [
     'imagen_perfil' => $usuario->imagen_perfil ?? '',
     'fecha_registro' => $usuario->fecha_registro ?? ''
 ];
+
+// Obtener favoritos del usuario
+$sql_favoritos = "SELECT l.*, c.nombre AS categoria_nombre, d.nombre AS departamento_nombre, f.fecha_agregado
+                  FROM favoritos f
+                  INNER JOIN lugares_turisticos l ON f.id_lugar = l.id
+                  LEFT JOIN categorias c ON l.id_categoria = c.id_categoria
+                  LEFT JOIN departamentos d ON l.id_departamento = d.id
+                  WHERE f.id_usuario = ?
+                  ORDER BY f.fecha_agregado DESC";
+$stmt = $conexion->prepare($sql_favoritos);
+$stmt->bind_param("i", $usuario_data['id']);
+$stmt->execute();
+$result_favoritos = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -41,152 +55,36 @@ $usuario_data = [
     <title>Mi Perfil - CataMap</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        body {
-            background: linear-gradient(135deg, #e07b38 0%, #a84300ff 100%);
-            min-height: 100vh;
-            padding: 30px 0;
-        }
-        .profile-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            overflow: hidden;
-        }
-        .profile-header {
-            background: linear-gradient(135deg, #e07b38 0%, #a84300ff 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .profile-avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 5px solid white;
-            object-fit: cover;
-            margin-bottom: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        .profile-body {
-            padding: 30px;
-        }
-        .info-item {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-        }
-        .info-item:last-child {
-            border-bottom: none;
-        }
-        .info-label {
-            font-weight: 600;
-            color: #e07b38;
-            min-width: 120px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .info-value {
-            color: #333;
-            flex: 1;
-        }
-        .badge-tipo {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .badge-usuario {
-            background: #17a2b8;
-            color: white;
-        }
-        .badge-emprendedor {
-            background: #28a745;
-            color: white;
-        }
-        .badge-administrador {
-            background: #dc3545;
-            color: white;
-        }
-        .btn-action {
-            margin: 5px;
-            border-radius: 25px;
-            padding: 10px 25px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        .btn-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="../styles/perfil.css">
 </head>
 <body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
+    <div class="container profile-container">
+        <div class="row">
+            <div class="col-lg-4">
                 <div class="profile-card">
-                    <!-- Header -->
-                    <div class="profile-header">
-                        <img src="<?php echo $usuario_data['imagen_perfil'] ? '../uploads/'.$usuario_data['imagen_perfil'] : 'https://ui-avatars.com/api/?name='.urlencode($usuario_data['nombre']).'&size=120&background=667eea&color=fff'; ?>" 
-                             class="profile-avatar" 
-                             alt="Avatar">
-                        <h3 class="mb-1"><?php echo htmlspecialchars($usuario_data['nombre']); ?></h3>
-                        <p class="mb-0 opacity-75"><?php echo htmlspecialchars($usuario_data['email']); ?></p>
+                    <div class="profile-header text-center">
+                        <div class="profile-avatar-container">
+                            <img id="profileAvatar" src="<?php echo $usuario_data['imagen_perfil'] ? '../uploads/'.$usuario_data['imagen_perfil'] : 'https://ui-avatars.com/api/?name='.urlencode($usuario_data['nombre']).'&size=150&background=e67e22&color=fff'; ?>" 
+                                 class="profile-avatar" 
+                                 alt="Avatar">
+                            <button class="edit-avatar-btn" onclick="cambiarFotoPerfil()">
+                                <i class="bi bi-camera-fill"></i>
+                            </button>
+                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                        </div>
+                        <h3 class="mt-3 mb-1" id="displayNombre"><?php echo htmlspecialchars($usuario_data['nombre']); ?></h3>
+                        <p class="mb-2 opacity-75" id="displayEmail"><?php echo htmlspecialchars($usuario_data['email']); ?></p>
+                        <span class="badge-tipo badge-<?php echo $usuario_data['tipo_usuario']; ?>">
+                            <i class="bi bi-shield-check"></i> <?php echo ucfirst($usuario_data['tipo_usuario']); ?>
+                        </span>
                     </div>
 
-                    <!-- Body -->
                     <div class="profile-body">
-                        <h5 class="mb-4">
-                            <i class="bi bi-person-badge"></i> Información de la cuenta
-                        </h5>
-
-                        <div class="info-item">
-                            <div class="info-label">
-                                <i class="bi bi-person-circle"></i>
-                                <span>Nombre:</span>
-                            </div>
-                            <div class="info-value"><?php echo htmlspecialchars($usuario_data['nombre']); ?></div>
-                        </div>
-
-                        <div class="info-item">
-                            <div class="info-label">
-                                <i class="bi bi-envelope"></i>
-                                <span>Email:</span>
-                            </div>
-                            <div class="info-value"><?php echo htmlspecialchars($usuario_data['email']); ?></div>
-                        </div>
-
-                        <div class="info-item">
-                            <div class="info-label">
-                                <i class="bi bi-shield-check"></i>
-                                <span>Tipo de cuenta:</span>
-                            </div>
-                            <div class="info-value">
-                                <span class="badge-tipo badge-<?php echo $usuario_data['tipo_usuario']; ?>">
-                                    <?php echo ucfirst($usuario_data['tipo_usuario']); ?>
-                                </span>
-                            </div>
-                        </div>
-
-                        <?php if(!empty($usuario_data['telefono'])): ?>
-                        <div class="info-item">
-                            <div class="info-label">
-                                <i class="bi bi-telephone"></i>
-                                <span>Teléfono:</span>
-                            </div>
-                            <div class="info-value"><?php echo htmlspecialchars($usuario_data['telefono']); ?></div>
-                        </div>
-                        <?php endif; ?>
-
-                        <?php if(!empty($usuario_data['fecha_registro'])): ?>
-                        <div class="info-item">
+                        <div class="info-group">
                             <div class="info-label">
                                 <i class="bi bi-calendar-check"></i>
-                                <span>Miembro desde:</span>
+                                Miembro desde
                             </div>
                             <div class="info-value">
                                 <?php 
@@ -195,26 +93,145 @@ $usuario_data = [
                                 ?>
                             </div>
                         </div>
-                        <?php endif; ?>
 
-                        <hr class="my-4">
+                        <hr>
 
-                        <!-- Acciones -->
                         <div class="text-center">
-                            <a href="../index.php" class="btn btn-secondary btn-action">
+                            <a href="../index.php" class="btn btn-secondary btn-block mb-2">
                                 <i class="bi bi-house"></i> Volver al Inicio
                             </a>
-                            <a href="mapa-catamarca.php" class="btn btn-primary btn-action">
+                            <a href="mapa-catamarca.php" class="btn btn-primary btn-block mb-2">
                                 <i class="bi bi-map"></i> Ver Mapa
                             </a>
-                            <?php if($usuario_data['tipo_usuario'] === 'emprendedor'): ?>
-                            <a href="mis-emprendimientos.php" class="btn btn-success btn-action">
-                                <i class="bi bi-briefcase"></i> Mis Emprendimientos
+                            <a href="lugares.php" class="btn btn-info btn-block mb-2">
+                                <i class="bi bi-geo-alt"></i> Lugares Turísticos
                             </a>
-                            <?php endif; ?>
-                            <button id="btnLogout" class="btn btn-danger btn-action">
+                            <button id="btnLogout" class="btn btn-danger btn-block">
                                 <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="profile-card">
+                    <div class="profile-body">
+                        <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab">
+                                    <i class="bi bi-person"></i> Información Personal
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="favoritos-tab" data-toggle="tab" href="#favoritos" role="tab">
+                                    <i class="bi bi-heart-fill"></i> Mis Favoritos
+                                </a>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="profileTabsContent">
+                            <!-- Tab Información Personal -->
+                            <div class="tab-pane fade show active" id="info" role="tabpanel">
+                                <div class="info-group">
+                                    <div class="info-label">
+                                        <i class="bi bi-person-circle"></i> Nombre Completo
+                                    </div>
+                                    <div class="info-value">
+                                        <span><?php echo htmlspecialchars($usuario_data['nombre']); ?></span>
+                                        <button class="btn-edit" onclick="editarNombre()">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="info-group">
+                                    <div class="info-label">
+                                        <i class="bi bi-envelope"></i> Correo Electrónico
+                                    </div>
+                                    <div class="info-value">
+                                        <span><?php echo htmlspecialchars($usuario_data['email']); ?></span>
+                                        <button class="btn-edit" onclick="editarEmail()">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="info-group">
+                                    <div class="info-label">
+                                        <i class="bi bi-telephone"></i> Teléfono
+                                    </div>
+                                    <div class="info-value">
+                                        <span><?php echo !empty($usuario_data['telefono']) ? htmlspecialchars($usuario_data['telefono']) : 'No especificado'; ?></span>
+                                        <button class="btn-edit" onclick="editarTelefono()">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <button class="btn btn-warning btn-block" onclick="cambiarPassword()">
+                                    <i class="bi bi-key"></i> Cambiar Contraseña
+                                </button>
+                            </div>
+
+                            <!-- Tab Favoritos -->
+                            <div class="tab-pane fade" id="favoritos" role="tabpanel">
+                                <h4 class="mb-4">
+                                    <i class="bi bi-heart-fill" style="color: #e74c3c;"></i> 
+                                    Lugares Favoritos
+                                </h4>
+                                
+                                <div class="row" id="favoritosContainer">
+                                    <?php if($result_favoritos->num_rows > 0): ?>
+                                        <?php while($fav = $result_favoritos->fetch_assoc()): ?>
+                                            <div class="col-md-6 mb-3" data-favorito-id="<?php echo $fav['id']; ?>">
+                                                <div class="favorito-card">
+                                                    <img src="<?php echo $fav['imagen'] ? '../uploads/'.$fav['imagen'] : '../img/placeholder.jpg'; ?>" 
+                                                         class="favorito-img" 
+                                                         alt="<?php echo htmlspecialchars($fav['nombre']); ?>"
+                                                         onerror="this.src='../img/placeholder.jpg'">
+                                                    <div class="favorito-content">
+                                                        <h5 class="favorito-titulo"><?php echo htmlspecialchars($fav['nombre']); ?></h5>
+                                                        <div class="favorito-info">
+                                                            <i class="bi bi-geo-alt-fill"></i>
+                                                            <span><?php echo htmlspecialchars($fav['departamento_nombre']); ?></span>
+                                                        </div>
+                                                        <div class="favorito-info">
+                                                            <i class="bi bi-tag-fill"></i>
+                                                            <span><?php echo htmlspecialchars($fav['categoria_nombre']); ?></span>
+                                                        </div>
+                                                        <div class="favorito-info">
+                                                            <i class="bi bi-clock-fill"></i>
+                                                            <span>Agregado el <?php echo date('d/m/Y', strtotime($fav['fecha_agregado'])); ?></span>
+                                                        </div>
+                                                        <div class="d-flex gap-2" style="gap: 10px;">
+                                                            <button class="btn-favorito-action btn-ver-mapa" style="flex: 1;" 
+                                                                    onclick="window.location.href='mapa-catamarca.php?lat=<?php echo $fav['lat']; ?>&lng=<?php echo $fav['lng']; ?>&id=<?php echo $fav['id']; ?>'">
+                                                                <i class="bi bi-map"></i> Ver en Mapa
+                                                            </button>
+                                                            <button class="btn-favorito-action btn-quitar-favorito" style="flex: 1;" 
+                                                                    onclick="quitarFavorito(<?php echo $fav['id']; ?>)">
+                                                                <i class="bi bi-trash"></i> Quitar
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php endwhile; ?>
+                                    <?php else: ?>
+                                        <div class="col-12 text-center py-5">
+                                            <i class="bi bi-heart" style="font-size: 5rem; color: #ecf0f1;"></i>
+                                            <h4 class="mt-3 text-muted">No tienes lugares favoritos aún</h4>
+                                            <p class="text-muted">Explora el mapa y guarda tus lugares favoritos</p>
+                                            <a href="mapa-catamarca.php" class="btn btn-primary mt-3">
+                                                <i class="bi bi-map"></i> Explorar Mapa
+                                            </a>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -224,23 +241,327 @@ $usuario_data = [
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../assets/js/auth.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('#btnLogout').click(async function() {
-                if(!confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                    return;
-                }
 
+    <script>
+        const usuarioId = <?php echo $usuario_data['id']; ?>;
+
+        // Editar nombre
+        async function editarNombre() {
+            const { value: nombre } = await Swal.fire({
+                title: 'Editar Nombre',
+                input: 'text',
+                inputLabel: 'Nuevo nombre',
+                inputValue: '<?php echo htmlspecialchars($usuario_data['nombre']); ?>',
+                showCancelButton: true,
+                confirmButtonColor: '#e67e22',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Guardar',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Por favor ingresa un nombre';
+                    }
+                }
+            });
+
+            if (nombre) {
+                await actualizarPerfil({ nombre: nombre });
+            }
+        }
+
+        // Editar email
+        async function editarEmail() {
+            const { value: email } = await Swal.fire({
+                title: 'Editar Email',
+                input: 'email',
+                inputLabel: 'Nuevo correo electrónico',
+                inputValue: '<?php echo htmlspecialchars($usuario_data['email']); ?>',
+                showCancelButton: true,
+                confirmButtonColor: '#e67e22',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Guardar',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Por favor ingresa un email';
+                    }
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                        return 'Por favor ingresa un email válido';
+                    }
+                }
+            });
+
+            if (email) {
+                await actualizarPerfil({ email: email });
+            }
+        }
+
+        // Editar teléfono
+        async function editarTelefono() {
+            const { value: telefono } = await Swal.fire({
+                title: 'Editar Teléfono',
+                input: 'tel',
+                inputLabel: 'Nuevo número de teléfono',
+                inputValue: '<?php echo htmlspecialchars($usuario_data['telefono']); ?>',
+                showCancelButton: true,
+                confirmButtonColor: '#e67e22',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Guardar'
+            });
+
+            if (telefono !== undefined) {
+                await actualizarPerfil({ telefono: telefono });
+            }
+        }
+
+        // Cambiar foto de perfil
+        function cambiarFotoPerfil() {
+            document.getElementById('avatarInput').click();
+        }
+
+        document.getElementById('avatarInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validar tamaño (máximo 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Archivo muy grande',
+                    text: 'La imagen no puede superar los 2MB',
+                    confirmButtonColor: '#e67e22'
+                });
+                return;
+            }
+
+            // Validar tipo
+            if (!file.type.startsWith('image/')) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Archivo inválido',
+                    text: 'Por favor selecciona una imagen válida',
+                    confirmButtonColor: '#e67e22'
+                });
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('imagen_perfil', file);
+
+            Swal.fire({
+                title: 'Subiendo imagen...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const response = await fetch('../api/actualizar-perfil.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Imagen actualizada!',
+                        confirmButtonColor: '#e67e22'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'No se pudo actualizar la imagen',
+                    confirmButtonColor: '#e67e22'
+                });
+            }
+        });
+
+        // Actualizar perfil
+        async function actualizarPerfil(datos) {
+            Swal.fire({
+                title: 'Actualizando...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const response = await fetch('../api/actualizar-perfil.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datos)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Actualizado!',
+                        text: 'Tus datos han sido actualizados correctamente',
+                        confirmButtonColor: '#e67e22'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'No se pudo actualizar el perfil',
+                    confirmButtonColor: '#e67e22'
+                });
+            }
+        }
+
+        // Cambiar contraseña
+        async function cambiarPassword() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Cambiar Contraseña',
+                html:
+                    '<input id="swal-password-actual" type="password" class="swal2-input" placeholder="Contraseña actual">' +
+                    '<input id="swal-password-nueva" type="password" class="swal2-input" placeholder="Nueva contraseña">' +
+                    '<input id="swal-password-confirmar" type="password" class="swal2-input" placeholder="Confirmar contraseña">',
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonColor: '#e67e22',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Cambiar',
+                preConfirm: () => {
+                    const actual = document.getElementById('swal-password-actual').value;
+                    const nueva = document.getElementById('swal-password-nueva').value;
+                    const confirmar = document.getElementById('swal-password-confirmar').value;
+
+                    if (!actual || !nueva || !confirmar) {
+                        Swal.showValidationMessage('Por favor completa todos los campos');
+                        return false;
+                    }
+
+                    if (nueva.length < 6) {
+                        Swal.showValidationMessage('La nueva contraseña debe tener al menos 6 caracteres');
+                        return false;
+                    }
+
+                    if (nueva !== confirmar) {
+                        Swal.showValidationMessage('Las contraseñas no coinciden');
+                        return false;
+                    }
+
+                    return { actual, nueva };
+                }
+            });
+
+            if (formValues) {
+                await actualizarPerfil({
+                    password_actual: formValues.actual,
+                    password_nueva: formValues.nueva
+                });
+            }
+        }
+
+        // Quitar favorito
+        async function quitarFavorito(idLugar) {
+            const result = await Swal.fire({
+                title: '¿Quitar de favoritos?',
+                text: 'Este lugar se eliminará de tu lista de favoritos',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Sí, quitar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch('../api/favoritos.php', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ id_lugar: idLugar })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        $(`[data-favorito-id="${idLugar}"]`).fadeOut(300, function() {
+                            $(this).remove();
+                            
+                            // Si no hay más favoritos, mostrar mensaje
+                            if ($('#favoritosContainer .col-md-6').length === 0) {
+                                $('#favoritosContainer').html(`
+                                    <div class="col-12 text-center py-5">
+                                        <i class="bi bi-heart" style="font-size: 5rem; color: #ecf0f1;"></i>
+                                        <h4 class="mt-3 text-muted">No tienes lugares favoritos aún</h4>
+                                        <p class="text-muted">Explora el mapa y guarda tus lugares favoritos</p>
+                                        <a href="mapa-catamarca.php" class="btn btn-primary mt-3">
+                                            <i class="bi bi-map"></i> Explorar Mapa
+                                        </a>
+                                    </div>
+                                `);
+                            }
+                        });
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Eliminado',
+                            text: 'El lugar ha sido quitado de favoritos',
+                            confirmButtonColor: '#e67e22',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'No se pudo quitar de favoritos',
+                        confirmButtonColor: '#e67e22'
+                    });
+                }
+            }
+        }
+
+        // Logout
+        $('#btnLogout').click(async function(e) {
+            e.preventDefault();
+            
+            const result = await Swal.fire({
+                title: '¿Cerrar sesión?',
+                text: '¿Estás seguro de que deseas cerrar tu sesión?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
                 try {
                     await Auth.logout();
                     window.location.href = '../index.php';
                 } catch (error) {
-                    console.error('Error al cerrar sesión:', error);
-                    // Forzar cierre de sesión
                     window.location.href = '../index.php';
                 }
-            });
+            }
         });
     </script>
 </body>

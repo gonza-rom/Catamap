@@ -45,7 +45,7 @@ body {
 
 .detalle-info h1 {
   font-size: 2.5rem;
-  color: #3AA6A6;
+  color: #a66c3a;
   margin-bottom: 20px;
 }
 
@@ -63,7 +63,7 @@ body {
   display: inline-block;
   margin-top: 20px;
   padding: 10px 20px;
-  background-color: #3AA6A6;
+  background-color: #e07b38;
   color: white;
   border-radius: 25px;
   text-decoration: none;
@@ -180,7 +180,7 @@ body {
         }
         
         .info-card h3 {
-            color: #667eea;
+            color: #e07b38;
             margin-bottom: 20px;
             font-weight: 600;
             display: flex;
@@ -201,7 +201,7 @@ body {
         }
         
         .info-item i {
-            color: #667eea;
+            color: #e07b38;
             font-size: 1.3rem;
             margin-top: 3px;
         }
@@ -321,23 +321,23 @@ body {
         }
         
         .btn-primary-custom {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e07b38 0%, #b3764d 100%);
             color: white;
         }
         
         .btn-primary-custom:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(70, 118, 48, 0.4);
         }
         
         .btn-outline-custom {
             background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
+            color: #e07b38;
+            border: 2px solid #e07b38;
         }
         
         .btn-outline-custom:hover {
-            background: #667eea;
+            background: #e07b38;
             color: white;
         }
         

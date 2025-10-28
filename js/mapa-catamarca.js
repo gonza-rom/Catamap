@@ -163,9 +163,9 @@ function crearPopupContenido(lugar) {
       ${favoritoBtn}
       <img src="${imagenUrl}" 
            alt="${lugar.nombre}" 
-           style="width:100%; max-width:280px; height:150px; object-fit:cover; border-radius:8px; margin-bottom:10px;"
+           style="width:100%; max-width:200px; height:150px; object-fit:cover; border-radius:8px; margin-bottom:10px;"
            onerror="this.src='../img/placeholder.jpg'">
-      <h4 style="margin: 8px 0; color: #333;">${lugar.nombre}</h4>
+      <h4 style="font-size: 1rem ; margin: 8px 0; color: #333;">${lugar.nombre}</h4>
       <p style="color: #666; font-size: 0.9rem; margin: 5px 0;">${lugar.descripcion}</p>
       <p style="margin: 5px 0; color: #555;">
         <i class="bi bi-geo-alt-fill" style="color: #E07B39;"></i> 
@@ -179,7 +179,7 @@ function crearPopupContenido(lugar) {
         <button class="route-btn" 
                 data-lat="${lugar.lat}" 
                 data-lng="${lugar.lng}"
-                style="flex: 1; padding: 8px 12px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">
+                style="flex: 1; padding: 8px 12px; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">
           🧭 Ir aquí
         </button>
         <button class="detail-btn" 
@@ -213,7 +213,7 @@ fetch('../data/departamentos-catamarca.json')
             <h4 style="margin: 0 0 15px 0; color: #333; border-bottom: 2px solid #E07B39; padding-bottom: 8px;">
               ${depto}
             </h4>
-            <div class="popup-content" style="max-height: 400px; overflow-y: auto;">
+            <div class="popup-content" style="max-height: 300px; overflow-y: auto;">
           `;
           
           lugares.forEach(lugar => {
