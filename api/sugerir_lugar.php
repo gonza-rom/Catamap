@@ -91,8 +91,8 @@ if(isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
         exit();
     }
     
-    // Crear directorio si no existe
-    $upload_dir = '../uploads/sugerencias/';
+    // Crear directorio si no existe - CORREGIDO
+    $upload_dir = '../uploads/';
     if(!file_exists($upload_dir)) {
         mkdir($upload_dir, 0777, true);
     }
