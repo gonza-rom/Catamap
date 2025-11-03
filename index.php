@@ -3,8 +3,9 @@
 <head>
 	<meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Start your development with FoodHut landing page.">
-    <meta name="author" content="Devcrud">
+    <meta name="description" content="catamap">
+    <meta name="author" content="Gonzalo Romero">
+    
     <title>Catamap</title>
     <!-- font icons -->
     <link rel="stylesheet" href="assets/vendors/themify-icons/css/themify-icons.css">
@@ -54,7 +55,7 @@
                 </li>
             </ul>
             <a class="navbar-brand m-auto" href="#">
-                <img src="assets/imgs/CATAMAP.png" class="brand-img" alt="">
+                <img src="img/CATAMAP.png" class="brand-img" alt="">
                 <span class="brand-txt">CATAMAP</span>
             </a>
             <ul class="navbar-nav">

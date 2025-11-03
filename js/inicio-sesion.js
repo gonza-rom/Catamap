@@ -39,6 +39,14 @@
                             <a class="dropdown-item" href="./pages/perfil.php">
                                 <i class="bi bi-person"></i> Mi Perfil
                             </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="./pages/sugerir-lugar.php">
+                                <i class="bi bi-plus-circle"></i> Sugerir Lugar
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="./pages/configuracion-privacidad.php">
+                                <i class="bi bi-shield-lock"></i> Privacidad
+                            </a>
                             ${usuario.tipo_usuario === 'emprendedor' ? `
                                 <a class="dropdown-item" href="./pages/mis-emprendimientos.php">
                                     <i class="bi bi-briefcase"></i> Mis Emprendimientos
@@ -53,6 +61,7 @@
                             <a class="dropdown-item" href="#" id="btnLogout">
                                 <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
                             </a>
+
                         </div>
                     </li>
                 `);

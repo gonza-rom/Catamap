@@ -24,15 +24,21 @@ if(!$usuario->verificarToken($_SESSION['token'])) {
     exit();
 }
 
-$usuario_data = [
-    'id' => $usuario->id,
-    'nombre' => $usuario->nombre,
-    'email' => $usuario->email,
-    'tipo_usuario' => $usuario->tipo_usuario,
-    'telefono' => $usuario->telefono ?? '',
-    'imagen_perfil' => $usuario->imagen_perfil ?? '',
-    'fecha_registro' => $usuario->fecha_registro ?? ''
-];
+// Obtener datos completos del usuario directamente de la BD
+$sql_usuario = "SELECT id, nombre, email, tipo_usuario, telefono, imagen_perfil, fecha_registro 
+                FROM usuarios WHERE id = ?";
+$stmt_usuario = $conexion->prepare($sql_usuario);
+$stmt_usuario->bind_param("i", $usuario->id);
+$stmt_usuario->execute();
+$result_usuario = $stmt_usuario->get_result();
+
+if($result_usuario->num_rows === 0) {
+    session_destroy();
+    header('Location: ../index.php');
+    exit();
+}
+
+$usuario_data = $result_usuario->fetch_assoc();
 
 // Obtener favoritos del usuario
 $sql_favoritos = "SELECT l.*, c.nombre AS categoria_nombre, d.nombre AS departamento_nombre, f.fecha_agregado
@@ -46,6 +52,15 @@ $stmt = $conexion->prepare($sql_favoritos);
 $stmt->bind_param("i", $usuario_data['id']);
 $stmt->execute();
 $result_favoritos = $stmt->get_result();
+
+// Obtener estadísticas del usuario
+$sql_stats = "SELECT 
+                (SELECT COUNT(*) FROM favoritos WHERE id_usuario = ?) as total_favoritos";
+$stmt_stats = $conexion->prepare($sql_stats);
+$stmt_stats->bind_param("i", $usuario_data['id']);
+$stmt_stats->execute();
+$estadisticas = $stmt_stats->get_result()->fetch_assoc();
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -56,7 +71,7 @@ $result_favoritos = $stmt->get_result();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <link rel="stylesheet" href="../styles/perfil.css">
+    <link rel="stylesheet" href="../styles/perfil2.css">
 </head>
 <body>
     <div class="container profile-container">
@@ -65,16 +80,26 @@ $result_favoritos = $stmt->get_result();
                 <div class="profile-card">
                     <div class="profile-header text-center">
                         <div class="profile-avatar-container">
-                            <img id="profileAvatar" src="<?php echo $usuario_data['imagen_perfil'] ? '../uploads/'.$usuario_data['imagen_perfil'] : 'https://ui-avatars.com/api/?name='.urlencode($usuario_data['nombre']).'&size=150&background=e67e22&color=fff'; ?>" 
+                            <?php 
+                            // Generar URL del avatar
+                            if(!empty($usuario_data['imagen_perfil']) && file_exists('../uploads/' . $usuario_data['imagen_perfil'])) {
+                                $avatar_url = '../uploads/' . $usuario_data['imagen_perfil'] . '?v=' . time();
+                            } else {
+                                $avatar_url = 'https://ui-avatars.com/api/?name=' . urlencode($usuario_data['nombre']) . '&size=150&background=e67e22&color=fff';
+                            }
+                            ?>
+                            <img id="profileAvatar" 
+                                 src="<?php echo $avatar_url; ?>" 
                                  class="profile-avatar" 
-                                 alt="Avatar">
+                                 alt="Avatar"
+                                 data-imagen="<?php echo htmlspecialchars($usuario_data['imagen_perfil'] ?? ''); ?>">
                             <button class="edit-avatar-btn" onclick="cambiarFotoPerfil()">
                                 <i class="bi bi-camera-fill"></i>
                             </button>
                             <input type="file" id="avatarInput" accept="image/*" style="display: none;">
                         </div>
-                        <h3 class="mt-3 mb-1" id="displayNombre"><?php echo htmlspecialchars($usuario_data['nombre']); ?></h3>
-                        <p class="mb-2 opacity-75" id="displayEmail"><?php echo htmlspecialchars($usuario_data['email']); ?></p>
+                        <h3 class="mt-3 mb-1"><?php echo htmlspecialchars($usuario_data['nombre']); ?></h3>
+                        <p class="mb-2 opacity-75"><?php echo htmlspecialchars($usuario_data['email']); ?></p>
                         <span class="badge-tipo badge-<?php echo $usuario_data['tipo_usuario']; ?>">
                             <i class="bi bi-shield-check"></i> <?php echo ucfirst($usuario_data['tipo_usuario']); ?>
                         </span>
@@ -126,6 +151,7 @@ $result_favoritos = $stmt->get_result();
                             <li class="nav-item">
                                 <a class="nav-link" id="favoritos-tab" data-toggle="tab" href="#favoritos" role="tab">
                                     <i class="bi bi-heart-fill"></i> Mis Favoritos
+                                    <span class="badge badge-primary"><?php echo $estadisticas['total_favoritos']; ?></span>
                                 </a>
                             </li>
                         </ul>
@@ -245,76 +271,6 @@ $result_favoritos = $stmt->get_result();
     <script src="../assets/js/auth.js"></script>
 
     <script>
-        const usuarioId = <?php echo $usuario_data['id']; ?>;
-
-        // Editar nombre
-        async function editarNombre() {
-            const { value: nombre } = await Swal.fire({
-                title: 'Editar Nombre',
-                input: 'text',
-                inputLabel: 'Nuevo nombre',
-                inputValue: '<?php echo htmlspecialchars($usuario_data['nombre']); ?>',
-                showCancelButton: true,
-                confirmButtonColor: '#e67e22',
-                cancelButtonText: 'Cancelar',
-                confirmButtonText: 'Guardar',
-                inputValidator: (value) => {
-                    if (!value) {
-                        return 'Por favor ingresa un nombre';
-                    }
-                }
-            });
-
-            if (nombre) {
-                await actualizarPerfil({ nombre: nombre });
-            }
-        }
-
-        // Editar email
-        async function editarEmail() {
-            const { value: email } = await Swal.fire({
-                title: 'Editar Email',
-                input: 'email',
-                inputLabel: 'Nuevo correo electrónico',
-                inputValue: '<?php echo htmlspecialchars($usuario_data['email']); ?>',
-                showCancelButton: true,
-                confirmButtonColor: '#e67e22',
-                cancelButtonText: 'Cancelar',
-                confirmButtonText: 'Guardar',
-                inputValidator: (value) => {
-                    if (!value) {
-                        return 'Por favor ingresa un email';
-                    }
-                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                        return 'Por favor ingresa un email válido';
-                    }
-                }
-            });
-
-            if (email) {
-                await actualizarPerfil({ email: email });
-            }
-        }
-
-        // Editar teléfono
-        async function editarTelefono() {
-            const { value: telefono } = await Swal.fire({
-                title: 'Editar Teléfono',
-                input: 'tel',
-                inputLabel: 'Nuevo número de teléfono',
-                inputValue: '<?php echo htmlspecialchars($usuario_data['telefono']); ?>',
-                showCancelButton: true,
-                confirmButtonColor: '#e67e22',
-                cancelButtonText: 'Cancelar',
-                confirmButtonText: 'Guardar'
-            });
-
-            if (telefono !== undefined) {
-                await actualizarPerfil({ telefono: telefono });
-            }
-        }
-
-        // Cambiar foto de perfil
         function cambiarFotoPerfil() {
             document.getElementById('avatarInput').click();
         }
@@ -323,7 +279,6 @@ $result_favoritos = $stmt->get_result();
             const file = e.target.files[0];
             if (!file) return;
 
-            // Validar tamaño (máximo 2MB)
             if (file.size > 2 * 1024 * 1024) {
                 Swal.fire({
                     icon: 'error',
@@ -334,7 +289,6 @@ $result_favoritos = $stmt->get_result();
                 return;
             }
 
-            // Validar tipo
             if (!file.type.startsWith('image/')) {
                 Swal.fire({
                     icon: 'error',
@@ -350,6 +304,7 @@ $result_favoritos = $stmt->get_result();
 
             Swal.fire({
                 title: 'Subiendo imagen...',
+                html: 'Por favor espera',
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
@@ -368,14 +323,19 @@ $result_favoritos = $stmt->get_result();
                     Swal.fire({
                         icon: 'success',
                         title: '¡Imagen actualizada!',
-                        confirmButtonColor: '#e67e22'
+                        text: 'Recargando página...',
+                        confirmButtonColor: '#e67e22',
+                        timer: 1500,
+                        showConfirmButton: false
                     }).then(() => {
-                        location.reload();
+                        // Recargar la página completamente para ver los cambios
+                        window.location.reload(true);
                     });
                 } else {
                     throw new Error(data.message);
                 }
             } catch (error) {
+                console.error('Error:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
@@ -385,22 +345,67 @@ $result_favoritos = $stmt->get_result();
             }
         });
 
-        // Actualizar perfil
+        // Resto de funciones...
+        async function editarNombre() {
+            const { value: nombre } = await Swal.fire({
+                title: 'Editar Nombre',
+                input: 'text',
+                inputLabel: 'Nuevo nombre',
+                inputValue: '<?php echo addslashes($usuario_data['nombre']); ?>',
+                showCancelButton: true,
+                confirmButtonColor: '#e67e22',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Guardar',
+                inputValidator: (value) => {
+                    if (!value) return 'Por favor ingresa un nombre';
+                }
+            });
+            if (nombre) await actualizarPerfil({ nombre: nombre });
+        }
+
+        async function editarEmail() {
+            const { value: email } = await Swal.fire({
+                title: 'Editar Email',
+                input: 'email',
+                inputLabel: 'Nuevo correo electrónico',
+                inputValue: '<?php echo $usuario_data['email']; ?>',
+                showCancelButton: true,
+                confirmButtonColor: '#e67e22',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Guardar',
+                inputValidator: (value) => {
+                    if (!value) return 'Por favor ingresa un email';
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Email inválido';
+                }
+            });
+            if (email) await actualizarPerfil({ email: email });
+        }
+
+        async function editarTelefono() {
+            const { value: telefono } = await Swal.fire({
+                title: 'Editar Teléfono',
+                input: 'tel',
+                inputLabel: 'Nuevo número de teléfono',
+                inputValue: '<?php echo $usuario_data['telefono'] ?? ''; ?>',
+                showCancelButton: true,
+                confirmButtonColor: '#e67e22',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Guardar'
+            });
+            if (telefono !== undefined) await actualizarPerfil({ telefono: telefono });
+        }
+
         async function actualizarPerfil(datos) {
             Swal.fire({
                 title: 'Actualizando...',
                 allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
+                didOpen: () => { Swal.showLoading(); }
             });
 
             try {
                 const response = await fetch('../api/actualizar-perfil.php', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(datos)
                 });
 
@@ -410,11 +415,8 @@ $result_favoritos = $stmt->get_result();
                     Swal.fire({
                         icon: 'success',
                         title: '¡Actualizado!',
-                        text: 'Tus datos han sido actualizados correctamente',
                         confirmButtonColor: '#e67e22'
-                    }).then(() => {
-                        location.reload();
-                    });
+                    }).then(() => location.reload());
                 } else {
                     throw new Error(data.message);
                 }
@@ -422,13 +424,12 @@ $result_favoritos = $stmt->get_result();
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: error.message || 'No se pudo actualizar el perfil',
+                    text: error.message,
                     confirmButtonColor: '#e67e22'
                 });
             }
         }
 
-        // Cambiar contraseña
         async function cambiarPassword() {
             const { value: formValues } = await Swal.fire({
                 title: 'Cambiar Contraseña',
@@ -439,28 +440,23 @@ $result_favoritos = $stmt->get_result();
                 focusConfirm: false,
                 showCancelButton: true,
                 confirmButtonColor: '#e67e22',
-                cancelButtonText: 'Cancelar',
-                confirmButtonText: 'Cambiar',
                 preConfirm: () => {
                     const actual = document.getElementById('swal-password-actual').value;
                     const nueva = document.getElementById('swal-password-nueva').value;
                     const confirmar = document.getElementById('swal-password-confirmar').value;
 
                     if (!actual || !nueva || !confirmar) {
-                        Swal.showValidationMessage('Por favor completa todos los campos');
+                        Swal.showValidationMessage('Completa todos los campos');
                         return false;
                     }
-
                     if (nueva.length < 6) {
-                        Swal.showValidationMessage('La nueva contraseña debe tener al menos 6 caracteres');
+                        Swal.showValidationMessage('Mínimo 6 caracteres');
                         return false;
                     }
-
                     if (nueva !== confirmar) {
                         Swal.showValidationMessage('Las contraseñas no coinciden');
                         return false;
                     }
-
                     return { actual, nueva };
                 }
             });
@@ -473,26 +469,20 @@ $result_favoritos = $stmt->get_result();
             }
         }
 
-        // Quitar favorito
         async function quitarFavorito(idLugar) {
             const result = await Swal.fire({
                 title: '¿Quitar de favoritos?',
-                text: 'Este lugar se eliminará de tu lista de favoritos',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#e74c3c',
-                cancelButtonColor: '#95a5a6',
-                confirmButtonText: 'Sí, quitar',
-                cancelButtonText: 'Cancelar'
+                confirmButtonText: 'Sí, quitar'
             });
 
             if (result.isConfirmed) {
                 try {
                     const response = await fetch('../api/favoritos.php', {
                         method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id_lugar: idLugar })
                     });
 
@@ -501,14 +491,11 @@ $result_favoritos = $stmt->get_result();
                     if (data.success) {
                         $(`[data-favorito-id="${idLugar}"]`).fadeOut(300, function() {
                             $(this).remove();
-                            
-                            // Si no hay más favoritos, mostrar mensaje
                             if ($('#favoritosContainer .col-md-6').length === 0) {
                                 $('#favoritosContainer').html(`
                                     <div class="col-12 text-center py-5">
                                         <i class="bi bi-heart" style="font-size: 5rem; color: #ecf0f1;"></i>
                                         <h4 class="mt-3 text-muted">No tienes lugares favoritos aún</h4>
-                                        <p class="text-muted">Explora el mapa y guarda tus lugares favoritos</p>
                                         <a href="mapa-catamarca.php" class="btn btn-primary mt-3">
                                             <i class="bi bi-map"></i> Explorar Mapa
                                         </a>
@@ -520,47 +507,29 @@ $result_favoritos = $stmt->get_result();
                         Swal.fire({
                             icon: 'success',
                             title: 'Eliminado',
-                            text: 'El lugar ha sido quitado de favoritos',
-                            confirmButtonColor: '#e67e22',
                             timer: 1500,
                             showConfirmButton: false
                         });
-                    } else {
-                        throw new Error(data.message);
                     }
                 } catch (error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: error.message || 'No se pudo quitar de favoritos',
-                        confirmButtonColor: '#e67e22'
-                    });
+                    Swal.fire({ icon: 'error', title: 'Error', text: error.message });
                 }
             }
         }
 
-        // Logout
         $('#btnLogout').click(async function(e) {
             e.preventDefault();
-            
             const result = await Swal.fire({
                 title: '¿Cerrar sesión?',
-                text: '¿Estás seguro de que deseas cerrar tu sesión?',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#e74c3c',
-                cancelButtonColor: '#95a5a6',
-                confirmButtonText: 'Sí, cerrar sesión',
-                cancelButtonText: 'Cancelar'
+                confirmButtonText: 'Sí, cerrar sesión'
             });
 
             if (result.isConfirmed) {
-                try {
-                    await Auth.logout();
-                    window.location.href = '../index.php';
-                } catch (error) {
-                    window.location.href = '../index.php';
-                }
+                await Auth.logout();
+                window.location.href = '../index.php';
             }
         });
     </script>
