@@ -40,6 +40,36 @@ $stmt_stats->bind_param("iiiii", $user_id, $user_id, $user_id, $user_id, $user_i
 $stmt_stats->execute();
 $stats = $stmt_stats->get_result()->fetch_assoc();
 
+// ========== AGREGAR ESTA SECCIÓN (LO QUE FALTA) ==========
+// Obtener configuración de privacidad
+$sql_config = "SELECT * FROM configuracion_privacidad WHERE id_usuario = ?";
+$stmt_config = $conexion->prepare($sql_config);
+$stmt_config->bind_param("i", $user_id);
+$stmt_config->execute();
+$result_config = $stmt_config->get_result();
+
+// Si no existe configuración, usar valores por defecto
+if($result_config->num_rows > 0) {
+    $configuracion = $result_config->fetch_assoc();
+} else {
+    // Valores por defecto si no existe configuración
+    $configuracion = [
+        'perfil_publico' => 1,
+        'favoritos_publicos' => 1,
+        'comentarios_publicos' => 1,
+        'mostrar_estadisticas' => 1
+    ];
+    
+    // Opcional: Crear registro con valores por defecto
+    $sql_insert = "INSERT INTO configuracion_privacidad 
+                   (id_usuario, perfil_publico, favoritos_publicos, comentarios_publicos, mostrar_estadisticas) 
+                   VALUES (?, 1, 1, 1, 1)";
+    $stmt_insert = $conexion->prepare($sql_insert);
+    $stmt_insert->bind_param("i", $user_id);
+    $stmt_insert->execute();
+}
+// ========== FIN DE LA SECCIÓN A AGREGAR ==========
+
 // Avatar URL
 if(!empty($usuario_data['imagen_perfil']) && file_exists('../uploads/' . $usuario_data['imagen_perfil'])) {
     $avatar_url = '../uploads/' . $usuario_data['imagen_perfil'] . '?v=' . time();
@@ -57,7 +87,7 @@ if(!empty($usuario_data['imagen_perfil']) && file_exists('../uploads/' . $usuari
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="../styles/perfil2.css">
+    <link rel="stylesheet" href="../styles/perfil.css">
 </head>
 <body>
     <div class="container profile-container">
@@ -336,64 +366,127 @@ if(!empty($usuario_data['imagen_perfil']) && file_exists('../uploads/' . $usuari
                     </div>
                 </div>
 
-                <!-- Tab: Privacidad -->
+                <!-- Tab: Privacidad (CORREGIDO) -->
                 <div class="tab-pane fade" id="privacidad">
-                    <h4 class="mb-4"><i class="bi bi-shield-lock text-danger"></i> Configuración de Privacidad</h4>
+                    <h4 class="mb-4">
+                        <i class="bi bi-shield-lock text-danger"></i> Configuración de Privacidad
+                    </h4>
+                    
                     <form id="formPrivacidad">
+                        <!-- Perfil Público -->
                         <div class="card mb-3 border-primary">
                             <div class="card-body">
                                 <h6><i class="bi bi-eye"></i> Visibilidad del Perfil</h6>
                                 <div class="custom-control custom-switch">
-                                    <input type="checkbox" class="custom-control-input" id="perfilPublico" name="perfil_publico" checked>
-                                    <label class="custom-control-label" for="perfilPublico">Permitir que otros usuarios vean mi perfil</label>
+                                    <input type="checkbox" 
+                                        class="custom-control-input" 
+                                        id="perfilPublico" 
+                                        name="perfil_publico" 
+                                        <?php echo $configuracion['perfil_publico'] ? 'checked' : ''; ?>>
+                                    <label class="custom-control-label" for="perfilPublico">
+                                        Permitir que otros usuarios vean mi perfil
+                                    </label>
                                 </div>
+                                <small class="text-muted">
+                                    Cuando está activado, otros usuarios pueden ver tu perfil público
+                                </small>
                             </div>
                         </div>
+
+                        <!-- Favoritos Públicos -->
                         <div class="card mb-3 border-info">
                             <div class="card-body">
                                 <h6><i class="bi bi-heart"></i> Favoritos</h6>
                                 <div class="custom-control custom-switch">
-                                    <input type="checkbox" class="custom-control-input" id="favoritosPublicos" name="favoritos_publicos" checked>
-                                    <label class="custom-control-label" for="favoritosPublicos">Mostrar mis lugares favoritos a otros usuarios</label>
+                                    <input type="checkbox" 
+                                        class="custom-control-input" 
+                                        id="favoritosPublicos" 
+                                        name="favoritos_publicos"
+                                        <?php echo $configuracion['favoritos_publicos'] ? 'checked' : ''; ?>>
+                                    <label class="custom-control-label" for="favoritosPublicos">
+                                        Mostrar mis lugares favoritos a otros usuarios
+                                    </label>
                                 </div>
+                                <small class="text-muted">
+                                    Otros usuarios podrán ver qué lugares has guardado como favoritos
+                                </small>
                             </div>
                         </div>
+
+                        <!-- Comentarios Públicos -->
                         <div class="card mb-3 border-warning">
                             <div class="card-body">
-                                <h6><i class="bi bi-bell"></i> Notificaciones</h6>
-                                <div class="custom-control custom-switch mb-2">
-                                    <input type="checkbox" class="custom-control-input" id="notifResenas" name="notif_resenas" checked>
-                                    <label class="custom-control-label" for="notifResenas">Nuevas reseñas en lugares que sugerí</label>
-                                </div>
-                                <div class="custom-control custom-switch mb-2">
-                                    <input type="checkbox" class="custom-control-input" id="notifSeguidores" name="notif_seguidores" checked>
-                                    <label class="custom-control-label" for="notifSeguidores">Notificarme cuando alguien me siga</label>
-                                </div>
+                                <h6><i class="bi bi-chat-dots"></i> Comentarios</h6>
                                 <div class="custom-control custom-switch">
-                                    <input type="checkbox" class="custom-control-input" id="notifEmail" name="notif_email">
-                                    <label class="custom-control-label" for="notifEmail">Recibir notificaciones por email</label>
+                                    <input type="checkbox" 
+                                        class="custom-control-input" 
+                                        id="comentariosPublicos" 
+                                        name="comentarios_publicos"
+                                        <?php echo $configuracion['comentarios_publicos'] ? 'checked' : ''; ?>>
+                                    <label class="custom-control-label" for="comentariosPublicos">
+                                        Mis comentarios son visibles para todos
+                                    </label>
                                 </div>
+                                <small class="text-muted">
+                                    Tus reseñas y comentarios aparecerán con tu nombre
+                                </small>
                             </div>
                         </div>
-                                <!-- Link del perfil público - CORREGIDO -->
+
+                        <!-- Estadísticas -->
                         <div class="card mb-3 border-success">
+                            <div class="card-body">
+                                <h6><i class="bi bi-bar-chart"></i> Estadísticas</h6>
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" 
+                                        class="custom-control-input" 
+                                        id="mostrarEstadisticas" 
+                                        name="mostrar_estadisticas"
+                                        <?php echo $configuracion['mostrar_estadisticas'] ? 'checked' : ''; ?>>
+                                    <label class="custom-control-label" for="mostrarEstadisticas">
+                                        Mostrar mis estadísticas en mi perfil público
+                                    </label>
+                                </div>
+                                <small class="text-muted">
+                                    Mostrar cuántos favoritos, comentarios y seguidores tienes
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Link del perfil público -->
+                        <div class="card mb-3 border-secondary">
                             <div class="card-body">
                                 <h6><i class="bi bi-link-45deg"></i> Enlace de tu perfil público</h6>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="enlacePerfilPublico" readonly 
+                                    <input type="text" 
+                                        class="form-control" 
+                                        id="enlacePerfilPublico" 
+                                        readonly 
                                         value="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/catamap/pages/perfil-publico.php?user=' . $user_id; ?>">
                                     <div class="input-group-append">
-                                        <button class="btn btn-primary" type="button" onclick="copiarEnlacePerfil()">
+                                        <button class="btn btn-primary" 
+                                                type="button" 
+                                                onclick="copiarEnlacePerfil()">
                                             <i class="bi bi-clipboard"></i> Copiar
                                         </button>
                                     </div>
                                 </div>
-                                <small class="text-muted">Comparte este enlace con otros para que vean tu perfil público</small>
+                                <small class="text-muted">
+                                    Comparte este enlace con otros para que vean tu perfil público
+                                </small>
                             </div>
                         </div>
 
+                        <!-- Botón de guardar -->
                         <button type="submit" class="btn btn-primary btn-lg btn-block">
                             <i class="bi bi-check-circle"></i> Guardar Configuración de Privacidad
+                        </button>
+
+                        <!-- Botón de debug (temporal) -->
+                        <button type="button" 
+                                class="btn btn-info btn-sm btn-block mt-2" 
+                                onclick="debugPrivacidad()">
+                            <i class="bi bi-bug"></i> Debug (Ver valores)
                         </button>
                     </form>
                 </div>
@@ -1109,25 +1202,99 @@ function dejarDeSeguir(idUsuario) {
         }
     });
 }
-        // ========== PRIVACIDAD ==========
-        $('#formPrivacidad').on('submit', function(e) {
-            e.preventDefault();
+       // ========== GUARDAR PRIVACIDAD (CORREGIDO) ==========
+$('#formPrivacidad').on('submit', function(e) {
+    e.preventDefault();
+    
+    // Obtener valores de los checkboxes
+    const config = {
+        perfil_publico: $('#perfilPublico').is(':checked') ? 'true' : 'false',
+        favoritos_publicos: $('#favoritosPublicos').is(':checked') ? 'true' : 'false',
+        comentarios_publicos: $('#comentariosPublicos').is(':checked') ? 'true' : 'false',
+        mostrar_estadisticas: $('#mostrarEstadisticas').is(':checked') ? 'true' : 'false'
+    };
+    
+    console.log('Enviando configuración:', config); // Para debug
+    
+    // Mostrar loading
+    Swal.fire({
+        title: 'Guardando...',
+        text: 'Actualizando configuración de privacidad',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    $.ajax({
+        url: '../api/guardar_privacidad.php',
+        type: 'POST',
+        data: config,
+        dataType: 'json',
+        success: function(data) {
+            console.log('Respuesta del servidor:', data); // Para debug
             
-            const config = {
-                perfil_publico: $('#perfilPublico').is(':checked'),
-                favoritos_publicos: $('#favoritosPublicos').is(':checked'),
-                notif_resenas: $('#notifResenas').is(':checked'),
-                notif_seguidores: $('#notifSeguidores').is(':checked'),
-                notif_email: $('#notifEmail').is(':checked')
-            };
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Guardado!',
+                    text: 'Configuración de privacidad actualizada correctamente',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'No se pudo guardar la configuración'
+                });
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error AJAX:', error);
+            console.error('Status:', status);
+            console.error('Response:', xhr.responseText);
             
-            $.post('../api/guardar_privacidad.php', config, function(data) {
-                if (data.success) {
-                    Swal.fire('¡Guardado!', 'Configuración de privacidad actualizada', 'success');
-                }
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'No se pudo conectar con el servidor. Verifica la consola para más detalles.'
             });
-        });
+        }
+    });
+});
 
+// Función alternativa si el formulario no funciona
+function guardarPrivacidadManual() {
+    const config = {
+        perfil_publico: $('#perfilPublico').is(':checked') ? 'true' : 'false',
+        favoritos_publicos: $('#favoritosPublicos').is(':checked') ? 'true' : 'false',
+        comentarios_publicos: $('#comentariosPublicos').is(':checked') ? 'true' : 'false',
+        mostrar_estadisticas: $('#mostrarEstadisticas').is(':checked') ? 'true' : 'false'
+    };
+    
+    console.log('Guardando configuración:', config);
+    
+    Swal.fire({
+        title: 'Guardando...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+    
+    $.post('../api/guardar_privacidad.php', config)
+        .done(function(data) {
+            console.log('Respuesta:', data);
+            if (data.success) {
+                Swal.fire('¡Guardado!', 'Configuración actualizada', 'success');
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        })
+        .fail(function(xhr) {
+            console.error('Error:', xhr.responseText);
+            Swal.fire('Error', 'No se pudo guardar', 'error');
+        });
+}
         // ========== CARGAR SELECTORES ==========
         function cargarSelectores() {
             // Cargar categorías

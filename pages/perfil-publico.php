@@ -1,4 +1,6 @@
 <?php
+// REEMPLAZAR la sección desde el inicio hasta después de obtener datos del usuario
+
 session_start();
 require_once '../includes/conexion.php';
 
@@ -10,9 +12,12 @@ if($id_usuario_perfil <= 0) {
     exit();
 }
 
-// Obtener datos del usuario
+// Obtener datos del usuario CON configuración de privacidad
 $sql_usuario = "SELECT u.id, u.nombre, u.email, u.tipo_usuario, u.imagen_perfil, u.fecha_registro,
-                cp.perfil_publico, cp.favoritos_publicos, cp.comentarios_publicos, cp.mostrar_estadisticas
+                COALESCE(cp.perfil_publico, 1) as perfil_publico, 
+                COALESCE(cp.favoritos_publicos, 1) as favoritos_publicos, 
+                COALESCE(cp.comentarios_publicos, 1) as comentarios_publicos, 
+                COALESCE(cp.mostrar_estadisticas, 1) as mostrar_estadisticas
                 FROM usuarios u
                 LEFT JOIN configuracion_privacidad cp ON u.id = cp.id_usuario
                 WHERE u.id = ? AND u.estado = 'activo'";
@@ -22,19 +27,50 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if($result->num_rows === 0) {
-    header('Location: ../index.php');
+    echo "<script>alert('Usuario no encontrado'); window.location.href='../index.php';</script>";
     exit();
 }
 
 $usuario_perfil = $result->fetch_assoc();
 
-// Si el perfil es privado y no es el dueño, redirigir
+// Verificar si es el dueño del perfil
 $es_dueno = isset($_SESSION['user_id']) && $_SESSION['user_id'] == $id_usuario_perfil;
+
+// Debug: Mostrar configuración (TEMPORAL - puedes eliminar después)
+error_log("Perfil público: " . $usuario_perfil['perfil_publico']);
+error_log("Favoritos públicos: " . $usuario_perfil['favoritos_publicos']);
+error_log("Comentarios públicos: " . $usuario_perfil['comentarios_publicos']);
+error_log("Mostrar estadísticas: " . $usuario_perfil['mostrar_estadisticas']);
+error_log("Es dueño: " . ($es_dueno ? 'SI' : 'NO'));
+
+// Si el perfil NO es público y NO es el dueño, mostrar mensaje y redirigir
 if(!$usuario_perfil['perfil_publico'] && !$es_dueno) {
-    header('Location: ../index.php');
+    ?>
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Perfil Privado - CataMap</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    </head>
+    <body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+        <div class="text-center text-white">
+            <i class="bi bi-lock-fill" style="font-size: 5rem;"></i>
+            <h2 class="mt-4">Perfil Privado</h2>
+            <p class="lead">Este usuario ha configurado su perfil como privado</p>
+            <a href="../index.php" class="btn btn-light btn-lg mt-3">
+                <i class="bi bi-house"></i> Volver al Inicio
+            </a>
+        </div>
+    </body>
+    </html>
+    <?php
     exit();
 }
 
+// Resto del código continúa igual...
 // Estadísticas del usuario
 $sql_stats = "SELECT 
     (SELECT COUNT(*) FROM favoritos WHERE id_usuario = ?) as total_favoritos,
@@ -60,9 +96,9 @@ if(isset($_SESSION['user_id'])) {
     $siguiendo = $stmt_sigue->get_result()->num_rows > 0;
 }
 
-// Obtener favoritos públicos
+// Obtener favoritos SOLO si son públicos o es el dueño
 $favoritos = [];
-if($usuario_perfil['favoritos_publicos'] || $es_dueno) {
+if(($usuario_perfil['favoritos_publicos'] == 1) || $es_dueno) {
     $sql_fav = "SELECT l.*, c.nombre AS categoria_nombre, d.nombre AS departamento_nombre
                 FROM favoritos f
                 INNER JOIN lugares_turisticos l ON f.id_lugar = l.id
@@ -249,32 +285,36 @@ while($row = $result_insignias->fetch_assoc()) {
                     </a>
                 <?php endif; ?>
                 
-                <?php if($usuario_perfil['mostrar_estadisticas'] || $es_dueno): ?>
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <span class="stat-number"><?php echo $estadisticas['total_favoritos']; ?></span>
-                        <span class="stat-label">Favoritos</span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-number"><?php echo $estadisticas['total_comentarios']; ?></span>
-                        <span class="stat-label">Opiniones</span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-number"><?php echo $estadisticas['lugares_aprobados']; ?></span>
-                        <span class="stat-label">Lugares Aportados</span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-number"><?php echo $estadisticas['seguidores']; ?></span>
-                        <span class="stat-label">Seguidores</span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-number"><?php echo $estadisticas['siguiendo']; ?></span>
-                        <span class="stat-label">Siguiendo</span>
-                    </div>
+                        <!-- Estadisticas -->
+        <?php if($usuario_perfil['mostrar_estadisticas'] == 1 || $es_dueno): ?>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-number"><?php echo $estadisticas['total_favoritos']; ?></span>
+                    <span class="stat-label">Favoritos</span>
                 </div>
-                <?php endif; ?>
+                <div class="stat-box">
+                    <span class="stat-number"><?php echo $estadisticas['total_comentarios']; ?></span>
+                    <span class="stat-label">Opiniones</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number"><?php echo $estadisticas['lugares_aprobados']; ?></span>
+                    <span class="stat-label">Lugares Aportados</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number"><?php echo $estadisticas['seguidores']; ?></span>
+                    <span class="stat-label">Seguidores</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number"><?php echo $estadisticas['siguiendo']; ?></span>
+                    <span class="stat-label">Siguiendo</span>
+                </div>
             </div>
-            
+            <?php else: ?>
+            <div class="alert alert-info mt-3">
+                <i class="bi bi-info-circle"></i> Este usuario ha ocultado sus estadísticas
+            </div>
+        <?php endif; ?>
+        </div>    
             <div class="p-4">
                 <p class="text-muted">
                     <i class="bi bi-calendar"></i> 
@@ -300,8 +340,8 @@ while($row = $result_insignias->fetch_assoc()) {
         </div>
         <?php endif; ?>
 
-        <!-- Lugares Favoritos -->
-        <?php if(($usuario_perfil['favoritos_publicos'] || $es_dueno) && count($favoritos) > 0): ?>
+        <!-- REEMPLAZAR la sección de Lugares Favoritos -->
+        <?php if(($usuario_perfil['favoritos_publicos'] == 1 || $es_dueno) && count($favoritos) > 0): ?>
         <div class="profile-card">
             <div class="p-4">
                 <h4><i class="bi bi-heart-fill text-danger"></i> Lugares Favoritos</h4>
@@ -310,8 +350,9 @@ while($row = $result_insignias->fetch_assoc()) {
                         <div class="col-md-4 mb-3">
                             <div class="lugar-card">
                                 <img src="<?php echo $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeholder.jpg'; ?>" 
-                                     class="lugar-img" 
-                                     alt="<?php echo htmlspecialchars($lugar['nombre']); ?>">
+                                    class="lugar-img" 
+                                    alt="<?php echo htmlspecialchars($lugar['nombre']); ?>"
+                                    onerror="this.src=' ../img/placeholder.jpg'">
                                 <div class="lugar-content">
                                     <h6 class="font-weight-bold"><?php echo htmlspecialchars($lugar['nombre']); ?></h6>
                                     <p class="text-muted small mb-0">
@@ -324,9 +365,17 @@ while($row = $result_insignias->fetch_assoc()) {
                 </div>
                 <?php if($estadisticas['total_favoritos'] > 6): ?>
                     <div class="text-center">
-                        <a href="#" class="btn btn-outline-primary">Ver todos los favoritos</a>
+                        <span class="badge badge-secondary">Y <?php echo ($estadisticas['total_favoritos'] - 6); ?> lugares más...</span>
                     </div>
                 <?php endif; ?>
+            </div>
+        </div>
+        <?php elseif($usuario_perfil['favoritos_publicos'] == 0 && !$es_dueno): ?>
+        <div class="profile-card">
+            <div class="p-4 text-center">
+                <i class="bi bi-lock" style="font-size: 3rem; color: #95a5a6;"></i>
+                <h5 class="mt-3 text-muted">Favoritos Privados</h5>
+                <p class="text-muted">Este usuario ha configurado sus favoritos como privados</p>
             </div>
         </div>
         <?php endif; ?>
