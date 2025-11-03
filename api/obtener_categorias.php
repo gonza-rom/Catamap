@@ -1,0 +1,28 @@
+<?php
+header("Content-Type: application/json; charset=UTF-8");
+include_once '../includes/conexion.php';
+
+try {
+    $sql = "SELECT id_categoria as id, nombre FROM categorias ORDER BY nombre";
+    $result = $conexion->query($sql);
+    
+    $categorias = [];
+    while($row = $result->fetch_assoc()) {
+        $categorias[] = [
+            'id' => intval($row['id']),
+            'nombre' => $row['nombre']
+        ];
+    }
+    
+    echo json_encode([
+        'success' => true,
+        'categorias' => $categorias
+    ]);
+} catch(Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error al obtener categorías: ' . $e->getMessage()
+    ]);
+}
+?>

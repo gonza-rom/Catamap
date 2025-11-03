@@ -57,162 +57,7 @@ if(!empty($usuario_data['imagen_perfil']) && file_exists('../uploads/' . $usuari
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        body {
-            background: linear-gradient(135deg, #e07b38 0%, #a84300ff 100%);
-            min-height: 100vh;
-            padding: 30px 0;
-        }
-        .profile-container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .profile-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        .profile-header {
-            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
-            color: white;
-            padding: 30px;
-        }
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 4px solid white;
-            object-fit: cover;
-        }
-        .edit-avatar-btn {
-            background: white;
-            border: none;
-            border-radius: 50%;
-            width: 35px;
-            height: 35px;
-            cursor: pointer;
-            color: #e67e22;
-            position: absolute;
-            bottom: 0;
-            right: 0;
-        }
-        .stats-box {
-            text-align: center;
-            padding: 15px;
-        }
-        .stats-number {
-            font-size: 28px;
-            font-weight: bold;
-            color: white;
-        }
-        .stats-label {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-        .nav-tabs {
-            border-bottom: 3px solid #f0f0f0;
-            padding: 0 30px;
-            background: white;
-        }
-        .nav-tabs .nav-link {
-            color: #666;
-            border: none;
-            padding: 15px 20px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        .nav-tabs .nav-link:hover {
-            color: #e67e22;
-        }
-        .nav-tabs .nav-link.active {
-            color: #e67e22;
-            border-bottom: 3px solid #e67e22;
-        }
-        .tab-content {
-            padding: 30px;
-            background: white;
-            min-height: 500px;
-        }
-        .info-value {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 8px;
-            border: 2px solid #ecf0f1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .favorito-card, .resena-card, .sugerencia-card, .user-card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-            border: 2px solid #e9ecef;
-        }
-        .favorito-card:hover, .resena-card:hover, .sugerencia-card:hover, .user-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-color: #e67e22;
-        }
-        #map {
-            height: 400px;
-            border-radius: 10px;
-            margin-top: 15px;
-            border: 3px solid #e67e22;
-        }
-        .badge-pendiente { 
-            background: #ffc107; 
-            color: #000; 
-            padding: 8px 15px;
-            font-size: 0.9rem;
-        }
-        .badge-aprobado { 
-            background: #28a745; 
-            color: #fff; 
-            padding: 8px 15px;
-            font-size: 0.9rem;
-        }
-        .badge-rechazado { 
-            background: #dc3545; 
-            color: #fff; 
-            padding: 8px 15px;
-            font-size: 0.9rem;
-        }
-        .rating-stars { 
-            color: #ffc107; 
-            font-size: 1.2rem; 
-        }
-        .lugar-imagen {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-        .empty-state i {
-            font-size: 80px;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-        .btn-action {
-            margin: 2px;
-        }
-        .user-avatar-small {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #e67e22;
-        }
-    </style>
+    <link rel="stylesheet" href="../styles/perfil2.css">
 </head>
 <body>
     <div class="container profile-container">
@@ -530,6 +375,14 @@ if(!empty($usuario_data['imagen_perfil']) && file_exists('../uploads/' . $usuari
                                 </div>
                             </div>
                         </div>
+                        <!-- Link del perfil público -->
+                        <div class="link-perfil-publico">
+                            <label><strong><i class="bi bi-link-45deg"></i> Enlace de tu perfil público:</strong></label>
+                            <input type="text" readonly value="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/catamap/pages/perfil-publico.php?user=' . $id_usuario; ?>" 
+                                onclick="this.select(); document.execCommand('copy'); mostrarMensaje('Enlace copiado', 'success');">
+                            <small class="text-muted">Haz clic para copiar el enlace</small>
+                        </div>
+                        
                         <button type="submit" class="btn btn-primary btn-lg btn-block">
                             <i class="bi bi-check-circle"></i> Guardar Configuración de Privacidad
                         </button>
@@ -571,93 +424,107 @@ if(!empty($usuario_data['imagen_perfil']) && file_exists('../uploads/' . $usuari
         });
 
         // ========== FUNCIONES DE EDICIÓN ==========
-        function editarNombre() {
-            Swal.fire({
-                title: 'Editar Nombre',
-                input: 'text',
-                inputValue: $('#displayNombre').text(),
-                showCancelButton: true,
-                confirmButtonText: 'Guardar',
-                cancelButtonText: 'Cancelar',
-                preConfirm: (nombre) => {
-                    if (!nombre) {
-                        Swal.showValidationMessage('El nombre no puede estar vacío');
-                        return false;
-                    }
-                    return $.post('../api/actualizar_perfil.php', { 
-                        campo: 'nombre', 
-                        valor: nombre 
-                    });
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $('#displayNombre').text(result.value.nombre);
-                    Swal.fire('¡Actualizado!', 'Email actualizado correctamente', 'success');
-                }
+function editarNombre() {
+    Swal.fire({
+        title: 'Editar Nombre',
+        input: 'text',
+        inputValue: $('#displayNombre').text().trim(),
+        showCancelButton: true,
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        preConfirm: (nombre) => {
+            if (!nombre) {
+                Swal.showValidationMessage('El nombre no puede estar vacío');
+                return false;
+            }
+            return $.ajax({
+                url: '../api/actualizar_perfil.php',
+                type: 'POST',
+                data: { campo: 'nombre', valor: nombre },
+                dataType: 'json'
             });
         }
+    }).then((result) => {
+        if (result.isConfirmed && result.value.success) {
+            $('#displayNombre').text(result.value.nombre);
+            Swal.fire('¡Actualizado!', 'Nombre actualizado correctamente', 'success');
+        } else if(result.isConfirmed) {
+            Swal.fire('Error', result.value.message || 'Error al actualizar', 'error');
+        }
+    });
+}
 
-        function editarTelefono() {
-            Swal.fire({
-                title: 'Editar Teléfono',
-                input: 'text',
-                inputValue: $('#displayTelefono').text() === 'No especificado' ? '' : $('#displayTelefono').text(),
-                showCancelButton: true,
-                confirmButtonText: 'Guardar',
-                cancelButtonText: 'Cancelar',
-                preConfirm: (telefono) => {
-                    return $.post('../api/actualizar_perfil.php', { 
-                        campo: 'telefono', 
-                        valor: telefono 
-                    });
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $('#displayTelefono').text(result.value.telefono || 'No especificado');
-                    Swal.fire('¡Actualizado!', 'Teléfono actualizado correctamente', 'success');
-                }
+function editarTelefono() {
+    Swal.fire({
+        title: 'Editar Teléfono',
+        input: 'text',
+        inputValue: $('#displayTelefono').text() === 'No especificado' ? '' : $('#displayTelefono').text().trim(),
+        showCancelButton: true,
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        preConfirm: (telefono) => {
+            return $.ajax({
+                url: '../api/actualizar_perfil.php',
+                type: 'POST',
+                data: { campo: 'telefono', valor: telefono },
+                dataType: 'json'
             });
         }
+    }).then((result) => {
+        if (result.isConfirmed && result.value.success) {
+            $('#displayTelefono').text(result.value.telefono || 'No especificado');
+            Swal.fire('¡Actualizado!', 'Teléfono actualizado correctamente', 'success');
+        }
+    });
+}
 
-        function cambiarPassword() {
-            Swal.fire({
-                title: 'Cambiar Contraseña',
-                html: `
-                    <input type="password" id="oldPassword" class="swal2-input" placeholder="Contraseña actual">
-                    <input type="password" id="newPassword" class="swal2-input" placeholder="Nueva contraseña">
-                    <input type="password" id="confirmPassword" class="swal2-input" placeholder="Confirmar contraseña">
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'Cambiar',
-                cancelButtonText: 'Cancelar',
-                preConfirm: () => {
-                    const oldPass = $('#oldPassword').val();
-                    const newPass = $('#newPassword').val();
-                    const confirmPass = $('#confirmPassword').val();
-                    
-                    if (!oldPass || !newPass || !confirmPass) {
-                        Swal.showValidationMessage('Todos los campos son obligatorios');
-                        return false;
-                    }
-                    if (newPass.length < 6) {
-                        Swal.showValidationMessage('La nueva contraseña debe tener al menos 6 caracteres');
-                        return false;
-                    }
-                    if (newPass !== confirmPass) {
-                        Swal.showValidationMessage('Las contraseñas no coinciden');
-                        return false;
-                    }
-                    return $.post('../api/cambiar_password.php', { 
-                        old_password: oldPass,
-                        new_password: newPass 
-                    });
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire('¡Actualizado!', 'Contraseña cambiada correctamente', 'success');
-                }
+function cambiarPassword() {
+    Swal.fire({
+        title: 'Cambiar Contraseña',
+        html: `
+            <input type="password" id="oldPassword" class="swal2-input" placeholder="Contraseña actual">
+            <input type="password" id="newPassword" class="swal2-input" placeholder="Nueva contraseña">
+            <input type="password" id="confirmPassword" class="swal2-input" placeholder="Confirmar contraseña">
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Cambiar',
+        cancelButtonText: 'Cancelar',
+        preConfirm: () => {
+            const oldPass = $('#oldPassword').val();
+            const newPass = $('#newPassword').val();
+            const confirmPass = $('#confirmPassword').val();
+            
+            if (!oldPass || !newPass || !confirmPass) {
+                Swal.showValidationMessage('Todos los campos son obligatorios');
+                return false;
+            }
+            if (newPass.length < 6) {
+                Swal.showValidationMessage('La nueva contraseña debe tener al menos 6 caracteres');
+                return false;
+            }
+            if (newPass !== confirmPass) {
+                Swal.showValidationMessage('Las contraseñas no coinciden');
+                return false;
+            }
+            return $.ajax({
+                url: '../api/cambiar_password.php',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ 
+                    old_password: oldPass,
+                    new_password: newPass 
+                }),
+                dataType: 'json'
             });
         }
+    }).then((result) => {
+        if (result.isConfirmed && result.value.success) {
+            Swal.fire('¡Actualizado!', 'Contraseña cambiada correctamente', 'success');
+        } else if(result.isConfirmed) {
+            Swal.fire('Error', result.value.message || 'Error al cambiar contraseña', 'error');
+        }
+    })
+    }
 
         function cambiarAvatar() {
             Swal.fire({
@@ -819,58 +686,87 @@ if(!empty($usuario_data['imagen_perfil']) && file_exists('../uploads/' . $usuari
         }
 
         function editarResena(idResena) {
-            $.get('../api/obtener_resena.php', { id: idResena }, function(resena) {
-                Swal.fire({
-                    title: 'Editar Reseña',
-                    html: `
-                        <select id="editCalificacion" class="swal2-select">
-                            <option value="1" ${resena.calificacion == 1 ? 'selected' : ''}>1 ★</option>
-                            <option value="2" ${resena.calificacion == 2 ? 'selected' : ''}>2 ★★</option>
-                            <option value="3" ${resena.calificacion == 3 ? 'selected' : ''}>3 ★★★</option>
-                            <option value="4" ${resena.calificacion == 4 ? 'selected' : ''}>4 ★★★★</option>
-                            <option value="5" ${resena.calificacion == 5 ? 'selected' : ''}>5 ★★★★★</option>
-                        </select>
-                        <textarea id="editComentario" class="swal2-textarea">${resena.comentario}</textarea>
-                    `,
-                    showCancelButton: true,
-                    confirmButtonText: 'Guardar',
-                    cancelButtonText: 'Cancelar',
-                    preConfirm: () => {
-                        return $.post('../api/editar_resena.php', {
+    $.ajax({
+        url: '../api/obtener_resena.php',
+        type: 'GET',
+        data: { id: idResena },
+        dataType: 'json',
+        success: function(resena) {
+            Swal.fire({
+                title: 'Editar Reseña',
+                html: `
+                    <select id="editCalificacion" class="swal2-select">
+                        <option value="1" ${resena.calificacion == 1 ? 'selected' : ''}>1 ★</option>
+                        <option value="2" ${resena.calificacion == 2 ? 'selected' : ''}>2 ★★</option>
+                        <option value="3" ${resena.calificacion == 3 ? 'selected' : ''}>3 ★★★</option>
+                        <option value="4" ${resena.calificacion == 4 ? 'selected' : ''}>4 ★★★★</option>
+                        <option value="5" ${resena.calificacion == 5 ? 'selected' : ''}>5 ★★★★★</option>
+                    </select>
+                    <textarea id="editComentario" class="swal2-textarea">${resena.comentario}</textarea>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Guardar',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    return $.ajax({
+                        url: '../api/editar_resena.php',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
                             id: idResena,
                             calificacion: $('#editCalificacion').val(),
                             comentario: $('#editComentario').val()
-                        });
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire('¡Actualizado!', 'Reseña actualizada correctamente', 'success');
-                        cargarResenas();
-                    }
-                });
-            });
-        }
-
-        function eliminarResena(idResena) {
-            Swal.fire({
-                title: '¿Eliminar reseña?',
-                text: 'Esta acción no se puede deshacer',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#dc3545'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.post('../api/eliminar_resena.php', { id: idResena }, function(data) {
-                        if (data.success) {
-                            Swal.fire('¡Eliminado!', 'Reseña eliminada', 'success');
-                            cargarResenas();
-                        }
+                        }),
+                        dataType: 'json'
                     });
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value.success) {
+                    Swal.fire('¡Actualizado!', 'Reseña actualizada correctamente', 'success');
+                    cargarResenas();
+                } else if(result.isConfirmed) {
+                    Swal.fire('Error', result.value.message || 'Error al actualizar', 'error');
+                }
+            });
+        },
+        error: function() {
+            Swal.fire('Error', 'No se pudo cargar la reseña', 'error');
+        }
+    });
+}
+
+// ========== FUNCIONES DE RESEÑAS CORREGIDAS ==========
+function eliminarResena(idResena) {
+    Swal.fire({
+        title: '¿Eliminar reseña?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#dc3545'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '../api/eliminar_resena.php',
+                type: 'POST',
+                data: { id: idResena },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.success) {
+                        Swal.fire('¡Eliminado!', 'Reseña eliminada', 'success');
+                        cargarResenas();
+                    } else {
+                        Swal.fire('Error', data.message || 'No se pudo eliminar', 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error', 'Error al eliminar la reseña', 'error');
                 }
             });
         }
+    });
+}
 
         // ========== CARGAR SUGERENCIAS ==========
         function cargarSugerencias() {
@@ -1044,24 +940,47 @@ if(!empty($usuario_data['imagen_perfil']) && file_exists('../uploads/' . $usuari
             });
         }
 
-        function seguirUsuario(idUsuario) {
-            $.post('../api/seguir_usuario.php', { id_usuario: idUsuario }, function(data) {
-                if (data.success) {
-                    Swal.fire('¡Listo!', 'Ahora sigues a este usuario', 'success');
-                    cargarSeguidores();
-                }
-            });
+function seguirUsuario(idUsuario) {
+    $.ajax({
+        url: '../api/seguir_usuario.php',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ id_usuario: idUsuario }),
+        dataType: 'json',
+        success: function(data) {
+            if (data.success) {
+                Swal.fire('¡Listo!', 'Ahora sigues a este usuario', 'success');
+                cargarSeguidores();
+            } else {
+                Swal.fire('Error', data.message || 'No se pudo seguir', 'error');
+            }
+        },
+        error: function() {
+            Swal.fire('Error', 'Error al seguir usuario', 'error');
         }
+    });
+}
 
-        function dejarDeSeguir(idUsuario) {
-            $.post('../api/dejar_seguir.php', { id_usuario: idUsuario }, function(data) {
-                if (data.success) {
-                    Swal.fire('Listo', 'Has dejado de seguir a este usuario', 'info');
-                    cargarSeguidores();
-                }
-            });
+function dejarDeSeguir(idUsuario) {
+    $.ajax({
+        url: '../api/dejar_seguir.php',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ id_usuario: idUsuario }),
+        dataType: 'json',
+        success: function(data) {
+            if (data.success) {
+                Swal.fire('Listo', 'Has dejado de seguir a este usuario', 'info');
+                cargarSeguidores();
+            } else {
+                Swal.fire('Error', data.message || 'No se pudo dejar de seguir', 'error');
+            }
+        },
+        error: function() {
+            Swal.fire('Error', 'Error al dejar de seguir', 'error');
         }
-
+    });
+}
         // ========== PRIVACIDAD ==========
         $('#formPrivacidad').on('submit', function(e) {
             e.preventDefault();

@@ -3,7 +3,7 @@ session_start();
 header("Content-Type: application/json; charset=UTF-8");
 
 include_once '../config/database.php';
-include_once '../classes/Usuario.php';
+include_once '../classes/usuario.php';
 include_once '../includes/conexion.php';
 
 // Verificar autenticación
