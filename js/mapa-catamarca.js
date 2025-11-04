@@ -39,6 +39,7 @@ L.control.layers(baseMaps).addTo(map);
 // --- variables de ruta / usuario ---
 let ubicacionUsuario = null;
 let controlRuta = null;
+let marcadorUsuario = null;
 
 // --- geolocalización (intenta obtener usuario) ---
 map.locate({ setView: false, maxZoom: 14 });
@@ -46,26 +47,68 @@ map.locate({ setView: false, maxZoom: 14 });
 map.on('locationfound', e => {
   ubicacionUsuario = e.latlng;
 
-  const userIcon = L.icon({
-    iconUrl: '../img/ubicacion.png',
-    iconSize: [30, 30],
-    iconAnchor: [15, 30],
+  // Remover marcador anterior si existe
+  if (marcadorUsuario) {
+    map.removeLayer(marcadorUsuario);
+  }
+
+  // 🔹 ICONO MEJORADO SIN IMAGEN - Solo usar divIcon con CSS
+  const userIcon = L.divIcon({
+    className: 'user-location-marker',
+    html: `
+      <div class="user-marker-container">
+        <div class="user-marker-pulse"></div>
+        <div class="user-marker-dot">
+          <i class="bi bi-person-fill"></i>
+        </div>
+      </div>
+    `,
+    iconSize: [60, 60],
+    iconAnchor: [30, 30],
     popupAnchor: [0, -30]
   });
 
-  L.marker(e.latlng, { icon: userIcon })
+  marcadorUsuario = L.marker(e.latlng, { 
+    icon: userIcon,
+    zIndexOffset: 2000 
+  })
     .addTo(map)
-    .bindPopup('📍 Estás aquí')
+    .bindPopup(`
+      <div style="text-align: center; padding: 10px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    color: white; 
+                    padding: 15px; 
+                    border-radius: 12px; 
+                    margin: -10px -10px 10px -10px;">
+          <i class="bi bi-geo-alt-fill" style="font-size: 2rem;"></i>
+          <h4 style="margin: 10px 0 5px 0; font-weight: 700;">Tu Ubicación</h4>
+          <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">Estás aquí ahora</p>
+        </div>
+        <div style="padding: 10px 0;">
+          <p style="margin: 5px 0; color: #666;">
+            <i class="bi bi-crosshair" style="color: #667eea;"></i> 
+            <strong>Coordenadas:</strong><br>
+            <small>Lat: ${e.latlng.lat.toFixed(6)}<br>Lng: ${e.latlng.lng.toFixed(6)}</small>
+          </p>
+          <p style="margin: 5px 0; color: #666;">
+            <i class="bi bi-bullseye" style="color: #667eea;"></i> 
+            <strong>Precisión:</strong> 
+            <small>~${Math.round(e.accuracy)} metros</small>
+          </p>
+        </div>
+      </div>
+    `)
     .openPopup();
 
   // 🔹 Esperar un instante y luego centrar en el usuario
   setTimeout(() => {
-    map.flyTo(e.latlng, 15); // flyTo hace una animación suave
+    map.flyTo(e.latlng, 15);
   }, 500);
-});
 
-map.on('locationerror', () => {
-  console.warn('Usuario no permitió geolocalización o no disponible.');
+  // Mostrar notificación de ubicación encontrada
+  if (typeof Favoritos !== 'undefined' && Favoritos.mostrarNotificacion) {
+    Favoritos.mostrarNotificacion('📍 Ubicación encontrada correctamente', 'success');
+  }
 });
 
 // --- función global para trazar/cancelar ruta ---
@@ -123,8 +166,8 @@ window.trazarRuta = function(destLat, destLng, btn) {
     ],
     routeWhileDragging: false,
     showAlternatives: true,
-    language: "es", // interfaz en español
-    createMarker: () => null // no crea marcadores extra
+    language: "es",
+    createMarker: () => null
   }).addTo(map);
 
   // Cambiar botón a "Cancelar"
@@ -326,12 +369,16 @@ map.on('popupopen', function(e){
 // BOTÓN DE IR A MI UBICACIÓN
 // ============================================
 
-// Control personalizado para "Ir a mi ubicación"
+// 🔹 ACTUALIZAR EL CONTROL DE "IR A MI UBICACIÓN"
 const homeControl = L.control({ position: "bottomright" });
 
 homeControl.onAdd = function () {
   const div = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
-  div.innerHTML = '<i class="fas fa-home" style="font-size:20px; padding:8px; cursor:pointer; color:#333;" title="Ir a mi ubicación"></i>';
+  div.innerHTML = `
+    <div class="home-control-btn" title="Ir a mi ubicación">
+      <i class="bi bi-geo-alt-fill"></i>
+    </div>
+  `;
   
   // Prevenir que el mapa se mueva al hacer click
   L.DomEvent.disableClickPropagation(div);
@@ -341,8 +388,16 @@ homeControl.onAdd = function () {
     if (ubicacionUsuario) {
       // Centrar el mapa en la ubicación del usuario
       map.flyTo(ubicacionUsuario, 15);
+      // Abrir popup del marcador
+      if (marcadorUsuario) {
+        marcadorUsuario.openPopup();
+      }
     } else {
-      alert('⚠️ Primero permite acceder a tu ubicación en el navegador.');
+      if (typeof Favoritos !== 'undefined' && Favoritos.mostrarNotificacion) {
+        Favoritos.mostrarNotificacion('⚠️ Primero permite acceder a tu ubicación en el navegador', 'warning');
+      } else {
+        alert('⚠️ Primero permite acceder a tu ubicación en el navegador.');
+      }
       // Intentar obtener la geolocalización nuevamente
       map.locate({ setView: true, maxZoom: 15 });
     }
@@ -513,6 +568,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+
+
 console.log('Mapa de Catamarca cargado correctamente');
 console.log('Usuario logueado:', typeof usuarioLogueado !== 'undefined' ? usuarioLogueado : 'No');
 
@@ -646,3 +703,5 @@ pulsatingStyle.innerHTML = `
     }
 `;
 document.head.appendChild(pulsatingStyle);
+
+

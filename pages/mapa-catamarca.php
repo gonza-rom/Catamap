@@ -284,50 +284,63 @@ if($usuario_logueado) {
 
   <!-- Sidebar moderna -->
   <div class="sidebar" id="sidebar">
-    <ul class="nav flex-column text-center">
-      <li class="nav-item" title="Inicio">
-        <a href="../index.php" class="nav-link">
-          <i class="bi bi-house-door-fill"></i>
-          <span class="nav-text">Volver al Inicio</span>
-        </a>
-      </li>
+  <ul class="nav flex-column text-center">
+    <li class="nav-item" title="Inicio">
+      <a href="../index.php" class="nav-link">
+        <i class="bi bi-house-door-fill"></i>
+        <span class="nav-text">Volver al Inicio</span>
+      </a>
+    </li>
 
-      <li class="nav-item" title="Buscar" id="btnBuscar">
-        <a href="#" class="nav-link">
-          <i class="bi bi-search"></i>
-          <span class="nav-text">Buscar</span>
-        </a>
-      </li>
+    <li class="nav-item" title="Buscar" id="btnBuscar">
+      <a href="#" class="nav-link">
+        <i class="bi bi-search"></i>
+        <span class="nav-text">Buscar</span>
+      </a>
+    </li>
 
-      <li class="nav-item" title="Categorías" id="btnCategorias">
-        <a href="#" class="nav-link">
-          <i class="bi bi-grid-1x2-fill"></i>
-          <span class="nav-text">Categorías</span>
-        </a>
-      </li>
+    <li class="nav-item" title="Categorías" id="btnCategorias">
+      <a href="#" class="nav-link">
+        <i class="bi bi-grid-1x2-fill"></i>
+        <span class="nav-text">Categorías</span>
+      </a>
+    </li>
 
-      <li class="nav-item" title="Favoritos" id="btnFavoritos">
-        <a href="#" class="nav-link">
-          <i class="bi bi-star-fill"></i>
-          <span class="nav-text">Mis Favoritos</span>
-        </a>
-      </li>
+    <li class="nav-item" title="Ver Favoritos" id="btnFavoritos">
+      <a href="#" class="nav-link">
+        <i class="bi bi-star-fill"></i>
+        <span class="nav-text">Mis Favoritos</span>
+      </a>
+    </li>
 
-      <li class="nav-item" title="Listado">
-        <a href="lugares.php" class="nav-link">
-          <i class="bi bi-list-ul"></i>
-          <span class="nav-text">Listado de lugares</span>
-        </a>
-      </li>
+    <!-- 🔹 NUEVO: BOTÓN PARA MOSTRAR FAVORITOS EN EL MAPA -->
+    <?php if($usuario_logueado): ?>
+    <li class="nav-item" title="Favoritos en Mapa" id="btnToggleFavoritosEnMapa">
+      <a href="#" class="nav-link">
+        <div class="toggle-icon-container">
+          <i class="bi bi-map"></i>
+          <i class="bi bi-star-fill toggle-star"></i>
+        </div>
+        <span class="nav-text">Mostrar en Mapa</span>
+      </a>
+    </li>
+    <?php endif; ?>
 
-      <li class="nav-item mt-auto" title="Cuenta">
-        <a href="<?php echo $usuario_logueado ? 'perfil.php' : '../index.php'; ?>" class="nav-link">
-          <i class="bi bi-person-circle"></i>
-          <span class="nav-text">Mi Cuenta</span>
-        </a>
-      </li>
-    </ul>
-  </div>
+    <li class="nav-item" title="Listado">
+      <a href="lugares.php" class="nav-link">
+        <i class="bi bi-list-ul"></i>
+        <span class="nav-text">Listado de lugares</span>
+      </a>
+    </li>
+
+    <li class="nav-item mt-auto" title="Cuenta">
+      <a href="<?php echo $usuario_logueado ? 'perfil.php' : '../index.php'; ?>" class="nav-link">
+        <i class="bi bi-person-circle"></i>
+        <span class="nav-text">Mi Cuenta</span>
+      </a>
+    </li>
+  </ul>
+</div>
 
 <!-- Al final del body, antes de cerrar </body> -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -383,6 +396,40 @@ if($usuario_logueado) {
         $('#favoritosPanel').removeClass('open');
       });
     });
+
+
+    $(document).ready(function() {
+    // ... código existente de logout y panel de favoritos ...
+
+    // 🔹 NUEVO: TOGGLE DE FAVORITOS EN EL MAPA
+    $('#btnToggleFavoritosEnMapa').click(function(e) {
+      e.preventDefault();
+      
+      if(!usuarioLogueado) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Inicia sesión',
+          text: 'Debes iniciar sesión para usar esta función',
+          confirmButtonColor: '#667eea'
+        }).then(() => {
+          window.location.href = '../index.php';
+        });
+        return;
+      }
+
+      // Cambiar estado visual del botón
+      const link = $(this).find('.nav-link');
+      link.toggleClass('active-favoritos');
+      
+      // Llamar a la función de favoritos
+      if (typeof Favoritos !== 'undefined') {
+        Favoritos.mostrarEnMapa();
+      }
+    });
+
+    // ... resto del código existente ...
+  });
+</script>
 </script>
 </body>
 </html>

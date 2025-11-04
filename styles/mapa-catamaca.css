@@ -1032,3 +1032,345 @@ li {
   animation-delay: 0.25s;
 }
 
+/* Notificación de búsqueda superior */
+#notificaciones-busqueda {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10001;
+  max-width: 90%;
+  width: 500px;
+}
+
+.notificacion-busqueda {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 15px 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  animation: slideDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.notificacion-busqueda:hover {
+  transform: scale(1.02);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+
+.notificacion-busqueda button:hover {
+  background: rgba(255,255,255,0.3) !important;
+  transform: rotate(90deg);
+}
+
+/* Toggle de favoritos en mapa */
+.toggle-icon-container {
+  position: relative;
+  font-size: 1.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.toggle-star {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 0.8rem;
+  color: #ffc107;
+  filter: drop-shadow(0 0 3px rgba(255, 193, 7, 0.6));
+}
+
+.nav-link.active-favoritos {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  border-radius: 10px;
+  width: 90%;
+}
+
+.nav-link.active-favoritos .toggle-star {
+  animation: starSpin 0.5s ease;
+}
+
+@keyframes starSpin {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    transform: rotate(360deg) scale(1.3);
+  }
+}
+
+/* Marcador de favorito en el mapa */
+.favorito-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.favorito-marker-container {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 5px rgba(255, 193, 7, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px rgba(255, 193, 7, 0.8));
+  }
+}
+
+.favorito-marker-container:hover {
+  animation: none;
+  transform: scale(1.2);
+}
+
+.favorito-marker-container i {
+  animation: favoritoBounce 1s ease-in-out infinite;
+}
+
+@keyframes favoritoBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Marcador de ubicación del usuario mejorado */
+.user-location-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.user-marker-container {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Pulso animado */
+.user-marker-pulse {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(102, 126, 234, 0.4);
+  animation: userPulse 2s ease-out infinite;
+}
+
+@keyframes userPulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Punto central con icono */
+.user-marker-dot {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 4px solid white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 10;
+  animation: userBounce 1.5s ease-in-out infinite;
+}
+
+.user-marker-dot i {
+  color: white;
+  font-size: 1.2rem;
+}
+
+@keyframes userBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.user-marker-dot:hover {
+  transform: scale(1.2);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+/* Botón de control mejorado */
+.home-control-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.home-control-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.home-control-btn:active {
+  transform: translateY(0) scale(1);
+}
+
+.home-control-btn i {
+  font-size: 1.5rem;
+  color: white;
+}
+
+/* Estilo mejorado para popup de ubicación */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+
+/* Animaciones de notificaciones */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+}
+
+/* Responsive para notificaciones */
+@media (max-width: 480px) {
+  #notificaciones-busqueda {
+    width: calc(100% - 40px);
+    max-width: none;
+  }
+  
+  .notificacion-busqueda {
+    padding: 12px 15px;
+    font-size: 0.9rem;
+  }
+}
+
+
+/* 🔹 ESTILOS PARA EL TOGGLE DE FAVORITOS EN MAPA */
+  .toggle-icon-container {
+    position: relative;
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .toggle-star {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.8rem;
+    color: #ffc107;
+    filter: drop-shadow(0 0 3px rgba(255, 193, 7, 0.6));
+  }
+
+  .nav-link.active-favoritos {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-radius: 10px;
+    width: 90%;
+  }
+
+  .nav-link.active-favoritos .toggle-star {
+    animation: starSpin 0.5s ease;
+  }
+
+  @keyframes starSpin {
+    from {
+      transform: rotate(0deg) scale(1);
+    }
+    to {
+      transform: rotate(360deg) scale(1.3);
+    }
+  }
+
+  /* Ajuste para que ambos botones de favoritos se vean bien */
+  #btnFavoritos .nav-link:hover,
+  #btnToggleFavoritosEnMapa .nav-link:hover {
+    background: rgba(133, 66, 3, 0.8);
+    transform: translateX(5px);
+  }
+
+  /* 🔹 ESTILOS PARA MARCADORES DE FAVORITOS */
+  .favorito-marker-icon {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  .favorito-marker-container {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% {
+      filter: drop-shadow(0 0 5px rgba(255, 193, 7, 0.5));
+    }
+    50% {
+      filter: drop-shadow(0 0 15px rgba(255, 193, 7, 0.8));
+    }
+  }
+
+  .favorito-marker-container:hover {
+    animation: none;
+    transform: scale(1.2);
+  }
+
+  .favorito-marker-container i {
+    animation: favoritoBounce 1s ease-in-out infinite;
+  }
+
+  @keyframes favoritoBounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }

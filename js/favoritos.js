@@ -231,6 +231,98 @@ const Favoritos = {
         `;
     },
 
+    // 🔹 NUEVA FUNCIONALIDAD: MOSTRAR FAVORITOS EN EL MAPA
+    mostrarEnMapa: async function() {
+        if (!usuarioLogueado) {
+            this.mostrarNotificacion('Debes iniciar sesión para ver favoritos', 'warning');
+            return;
+        }
+
+        try {
+            // Si ya están mostrados, ocultarlos
+            if (window.favoritosMostrados) {
+                window.marcadoresFavoritos.forEach(marker => map.removeLayer(marker));
+                window.marcadoresFavoritos = [];
+                window.favoritosMostrados = false;
+                this.mostrarNotificacion('Favoritos ocultos del mapa', 'info');
+                
+                // Remover clase activa del botón
+                const btn = document.querySelector('#btnToggleFavoritosEnMapa .nav-link');
+                if (btn) btn.classList.remove('active-favoritos');
+                
+                return;
+            }
+
+            // Obtener favoritos del servidor
+            const response = await fetch('../api/favoritos.php');
+            const data = await response.json();
+
+            if (data.success && data.data.length > 0) {
+                // Limpiar marcadores anteriores
+                if (window.marcadoresFavoritos) {
+                    window.marcadoresFavoritos.forEach(marker => map.removeLayer(marker));
+                }
+                window.marcadoresFavoritos = [];
+
+                // Crear marcadores para cada favorito
+                data.data.forEach(lugar => {
+                    // Icono personalizado para favoritos (estrella dorada)
+                    const iconoFavorito = L.divIcon({
+                        className: 'favorito-marker-icon',
+                        html: `
+                            <div class="favorito-marker-container">
+                                <i class="bi bi-star-fill" style="color: #ffc107; font-size: 2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></i>
+                            </div>
+                        `,
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 40],
+                        popupAnchor: [0, -40]
+                    });
+
+                    // Buscar datos completos del lugar
+                    let lugarCompleto = null;
+                    for (const depto in lugaresTuristicos) {
+                        const encontrado = lugaresTuristicos[depto].find(l => l.id === lugar.id_lugar);
+                        if (encontrado) {
+                            lugarCompleto = encontrado;
+                            break;
+                        }
+                    }
+
+                    if (lugarCompleto) {
+                        const marker = L.marker([lugar.lat, lugar.lng], { 
+                            icon: iconoFavorito,
+                            zIndexOffset: 1000 
+                        });
+                        
+                        const popupContent = crearPopupContenido(lugarCompleto);
+                        marker.bindPopup(popupContent);
+                        marker.addTo(map);
+                        window.marcadoresFavoritos.push(marker);
+                    }
+                });
+
+                window.favoritosMostrados = true;
+                this.mostrarNotificacion(`✨ ${data.data.length} favorito${data.data.length !== 1 ? 's' : ''} mostrado${data.data.length !== 1 ? 's' : ''} en el mapa`, 'success');
+
+                // Agregar clase activa al botón
+                const btn = document.querySelector('#btnToggleFavoritosEnMapa .nav-link');
+                if (btn) btn.classList.add('active-favoritos');
+
+                // Ajustar vista del mapa para mostrar todos los favoritos
+                if (window.marcadoresFavoritos.length > 0) {
+                    const group = L.featureGroup(window.marcadoresFavoritos);
+                    map.fitBounds(group.getBounds().pad(0.1));
+                }
+            } else {
+                this.mostrarNotificacion('No tienes lugares favoritos aún', 'info');
+            }
+        } catch (error) {
+            console.error('Error al mostrar favoritos en mapa:', error);
+            this.mostrarNotificacion('Error al cargar favoritos', 'error');
+        }
+    },
+
     // Mostrar notificación
     mostrarNotificacion: function(mensaje, tipo) {
         // Crear contenedor de notificaciones si no existe
@@ -345,6 +437,10 @@ const Favoritos = {
         }
     }
 };
+
+// Variables globales para marcadores de favoritos
+window.marcadoresFavoritos = [];
+window.favoritosMostrados = false;
 
 // Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
