@@ -87,6 +87,22 @@ body {
   }
 }
 
+#miniMapa {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#miniMapa:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+#miniMapa .leaflet-control-zoom {
+    display: none;
+}
+
+#miniMapa .leaflet-control-attribution {
+    font-size: 10px;
+}
 
 .hero-detalle {
             position: relative;
@@ -95,7 +111,6 @@ body {
             background-position: center;
             display: flex;
             align-items: flex-end;
-            margin-top: 70px;
         }
         
         .hero-detalle::before {

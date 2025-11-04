@@ -262,75 +262,82 @@ if(!empty($usuario_data['imagen_perfil']) && file_exists('../uploads/' . $usuari
                     <h4 class="mb-4"><i class="bi bi-plus-circle text-success"></i> Sugerir Nuevo Lugar</h4>
                     <p class="text-muted">Ayúdanos a crecer el mapa de Catamarca compartiendo lugares increíbles</p>
                     
-                    <form id="formSugerirLugar">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label><i class="bi bi-geo-alt"></i> Nombre del Lugar *</label>
-                                    <input type="text" class="form-control" name="nombre" required placeholder="Ej: Cuesta del Portezuelo">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label><i class="bi bi-pin-map"></i> Dirección</label>
-                                    <input type="text" class="form-control" name="direccion" placeholder="Ej: Ruta 4, km 15">
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label><i class="bi bi-card-text"></i> Descripción * (mínimo 50 caracteres)</label>
-                                    <textarea class="form-control" name="descripcion" rows="4" required placeholder="Describe el lugar, qué lo hace especial, qué actividades se pueden hacer..."></textarea>
-                                    <small class="text-muted">Caracteres: <span id="charCount">0</span>/50</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label><i class="bi bi-tag"></i> Categoría *</label>
-                                    <select class="form-control" name="id_categoria" required>
-                                        <option value="">Seleccionar...</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label><i class="bi bi-map"></i> Departamento *</label>
-                                    <select class="form-control" name="id_departamento" required>
-                                        <option value="">Seleccionar...</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label><i class="bi bi-image"></i> Imagen</label>
-                                    <input type="file" class="form-control-file" name="imagen" accept="image/*">
-                                    <small class="text-muted">Máximo 5MB</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label><i class="bi bi-geo"></i> Latitud *</label>
-                                    <input type="text" class="form-control" name="lat" id="inputLat" readonly required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label><i class="bi bi-geo"></i> Longitud *</label>
-                                    <input type="text" class="form-control" name="lng" id="inputLng" readonly required>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="alert alert-info">
-                                    <i class="bi bi-cursor"></i> <strong>Haz clic en el mapa para marcar la ubicación exacta del lugar</strong>
-                                </div>
-                                <div id="map"></div>
-                            </div>
-                            <div class="col-12 mt-3">
-                                <button type="submit" class="btn btn-success btn-lg btn-block">
-                                    <i class="bi bi-send"></i> Enviar Sugerencia para Revisión
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+                    <!-- Reemplaza la sección del formulario en perfil.php -->
+<form id="formSugerirLugar">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label><i class="bi bi-geo-alt"></i> Nombre del Lugar *</label>
+                <input type="text" class="form-control" name="nombre" required placeholder="Ej: Cuesta del Portezuelo">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label><i class="bi bi-pin-map"></i> Dirección</label>
+                <input type="text" class="form-control" name="direccion" placeholder="Ej: Ruta 4, km 15">
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="form-group">
+                <label><i class="bi bi-card-text"></i> Descripción * (mínimo 50 caracteres)</label>
+                <textarea class="form-control" name="descripcion" rows="4" required placeholder="Describe el lugar, qué lo hace especial, qué actividades se pueden hacer..."></textarea>
+                <small class="text-muted">Caracteres: <span id="charCount">0</span>/50</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label><i class="bi bi-tag"></i> Categoría *</label>
+                <select class="form-control" name="id_categoria" required>
+                    <option value="">Seleccionar...</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label><i class="bi bi-map"></i> Departamento *</label>
+                <select class="form-control" name="id_departamento" required>
+                    <option value="">Seleccionar...</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label><i class="bi bi-image"></i> Imagen</label>
+                <input type="file" class="form-control-file" name="imagen" accept="image/*">
+                <small class="text-muted">Máximo 5MB</small>
+            </div>
+        </div>
+        
+        <!-- Coordenadas ocultas pero funcionales -->
+        <input type="hidden" name="lat" id="inputLat" required>
+        <input type="hidden" name="lng" id="inputLng" required>
+        
+        <div class="col-12">
+            <div class="alert alert-info d-flex align-items-center">
+                <i class="bi bi-cursor-fill" style="font-size: 1.5rem; margin-right: 10px;"></i>
+                <div class="flex-grow-1">
+                    <strong>Ubica el lugar en el mapa</strong>
+                    <p class="mb-0 small">Haz clic en el mapa para marcar la ubicación exacta del lugar que deseas sugerir</p>
+                    <small id="coordenadasMarcadas" class="text-success d-none">
+                        <i class="bi bi-check-circle-fill"></i> Ubicación marcada correctamente
+                    </small>
+                </div>
+            </div>
+            <div id="map" style="position: relative;">
+                <!-- Indicador de ubicación marcada -->
+                <div id="ubicacionIndicador" class="ubicacion-marcada d-none">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <span>Ubicación seleccionada</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 mt-3">
+            <button type="submit" class="btn btn-success btn-lg btn-block">
+                <i class="bi bi-send"></i> Enviar Sugerencia para Revisión
+            </button>
+        </div>
+    </div>
+</form>
                 </div>
 
                 <!-- Tab: Seguidores/Social -->
@@ -997,66 +1004,156 @@ function eliminarResena(idResena) {
             });
         }
 
-        // ========== MAPA PARA SUGERIR ==========
-        function inicializarMapa() {
-            if (map) return; // Ya está inicializado
-            
-            setTimeout(() => {
-                map = L.map('map').setView([-28.4696, -65.7795], 8); // Centro de Catamarca
-                
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors'
-                }).addTo(map);
-                
-                map.on('click', function(e) {
-                    if (marker) {
-                        map.removeLayer(marker);
-                    }
-                    marker = L.marker(e.latlng).addTo(map);
-                    $('#inputLat').val(e.latlng.lat.toFixed(6));
-                    $('#inputLng').val(e.latlng.lng.toFixed(6));
-                });
-            }, 300);
-        }
-
-        // ========== ENVIAR SUGERENCIA ==========
-        $('#formSugerirLugar').on('submit', function(e) {
-            e.preventDefault();
-            
-            const descripcion = $('textarea[name="descripcion"]').val();
-            if (descripcion.length < 50) {
-                Swal.fire('Error', 'La descripción debe tener al menos 50 caracteres', 'error');
-                return;
-            }
-            
-            if (!$('#inputLat').val() || !$('#inputLng').val()) {
-                Swal.fire('Error', 'Debes marcar la ubicación en el mapa', 'error');
-                return;
-            }
-            
-            const formData = new FormData(this);
-            
-            $.ajax({
-                url: '../api/sugerir_lugar.php',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(data) {
-                    if (data.success) {
-                        Swal.fire('¡Enviado!', 'Tu sugerencia será revisada por un administrador', 'success');
-                        $('#formSugerirLugar')[0].reset();
-                        $('#inputLat, #inputLng').val('');
-                        if (marker) map.removeLayer(marker);
-                    } else {
-                        Swal.fire('Error', data.message, 'error');
-                    }
-                },
-                error: function() {
-                    Swal.fire('Error', 'No se pudo enviar la sugerencia', 'error');
-                }
-            });
+        // Actualizar la función del mapa en perfil.php
+function inicializarMapa() {
+    if (map) return; // Ya está inicializado
+    
+    setTimeout(() => {
+        map = L.map('map').setView([-28.4696, -65.7795], 8); // Centro de Catamarca
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Crear un ícono personalizado para el marcador
+        const customIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
         });
+        
+        map.on('click', function(e) {
+            // Remover marcador anterior si existe
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            
+            // Crear nuevo marcador con icono personalizado
+            marker = L.marker(e.latlng, { icon: customIcon }).addTo(map);
+            
+            // Agregar popup al marcador
+            marker.bindPopup(`
+                <div style="text-align: center; padding: 5px;">
+                    <strong style="color: #4CAF50;">📍 Ubicación seleccionada</strong><br>
+                    <small style="color: #666;">Lat: ${e.latlng.lat.toFixed(6)}<br>Lng: ${e.latlng.lng.toFixed(6)}</small>
+                </div>
+            `).openPopup();
+            
+            // Guardar coordenadas en campos ocultos
+            $('#inputLat').val(e.latlng.lat.toFixed(6));
+            $('#inputLng').val(e.latlng.lng.toFixed(6));
+            
+            // Mostrar indicadores visuales
+            $('#coordenadasMarcadas').removeClass('d-none');
+            $('#ubicacionIndicador').removeClass('d-none');
+            $('#map').addClass('ubicacion-seleccionada');
+            
+            // Animación sutil del mapa
+            setTimeout(() => {
+                map.panTo(e.latlng);
+            }, 100);
+        });
+        
+        // Ajustar el mapa cuando se muestre
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
+    }, 300);
+}
+
+// Actualizar el submit del formulario para validar coordenadas
+$('#formSugerirLugar').on('submit', function(e) {
+    e.preventDefault();
+    
+    const descripcion = $('textarea[name="descripcion"]').val();
+    if (descripcion.length < 50) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Descripción muy corta',
+            text: 'La descripción debe tener al menos 50 caracteres',
+            confirmButtonColor: '#e74c3c'
+        });
+        return;
+    }
+    
+    if (!$('#inputLat').val() || !$('#inputLng').val()) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Ubicación requerida',
+            html: '<i class="bi bi-cursor-fill" style="font-size: 2rem; color: #f39c12;"></i><br><br>Debes marcar la ubicación del lugar en el mapa haciendo clic sobre él',
+            confirmButtonColor: '#f39c12'
+        });
+        
+        // Hacer scroll hasta el mapa
+        $('html, body').animate({
+            scrollTop: $("#map").offset().top - 100
+        }, 500);
+        
+        // Efecto visual en el mapa
+        $('#map').css('border-color', '#f39c12');
+        setTimeout(() => {
+            $('#map').css('border-color', '#e0e0e0');
+        }, 2000);
+        
+        return;
+    }
+    
+    const formData = new FormData(this);
+    
+    // Mostrar loading
+    Swal.fire({
+        title: 'Enviando sugerencia...',
+        html: '<div class="spinner-border text-primary" role="status"></div>',
+        showConfirmButton: false,
+        allowOutsideClick: false
+    });
+    
+    $.ajax({
+        url: '../api/sugerir_lugar.php',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(data) {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Sugerencia enviada!',
+                    html: '<p>Tu sugerencia será revisada por un administrador.</p><p class="text-muted small">Recibirás una notificación cuando sea aprobada.</p>',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#4CAF50'
+                });
+                
+                // Limpiar formulario
+                $('#formSugerirLugar')[0].reset();
+                $('#inputLat, #inputLng').val('');
+                $('#coordenadasMarcadas').addClass('d-none');
+                $('#ubicacionIndicador').addClass('d-none');
+                $('#map').removeClass('ubicacion-seleccionada');
+                if (marker) map.removeLayer(marker);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'No se pudo enviar la sugerencia',
+                    confirmButtonColor: '#e74c3c'
+                });
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'No se pudo conectar con el servidor',
+                confirmButtonColor: '#e74c3c'
+            });
+        }
+    });
+});
 
  // ========== CARGAR SEGUIDORES CON ESTADO CORRECTO ==========
 function cargarSeguidores() {

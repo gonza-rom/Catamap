@@ -515,3 +515,134 @@ document.addEventListener('DOMContentLoaded', function() {
 
 console.log('Mapa de Catamarca cargado correctamente');
 console.log('Usuario logueado:', typeof usuarioLogueado !== 'undefined' ? usuarioLogueado : 'No');
+
+
+// Función para ir a un lugar específico en el mapa
+window.irALugarEnMapa = function(lat, lng, idLugar) {
+    // Centrar el mapa en el lugar
+    map.flyTo([lat, lng], 16, {
+        duration: 2,
+        easeLinearity: 0.25
+    });
+
+    // Buscar el lugar en los datos
+    let lugarEncontrado = null;
+    for (const depto in lugaresTuristicos) {
+        const lugares = lugaresTuristicos[depto];
+        lugarEncontrado = lugares.find(l => l.id === idLugar);
+        if (lugarEncontrado) break;
+    }
+
+    if (lugarEncontrado) {
+        // Crear un marcador temporal con animación
+        const pulsingIcon = L.divIcon({
+            className: 'pulsing-marker',
+            html: `<div class="pulse-icon">
+                     <i class="bi bi-geo-alt-fill" style="font-size: 2rem; color: #E07B39;"></i>
+                   </div>`,
+            iconSize: [40, 40],
+            iconAnchor: [20, 40]
+        });
+
+        const markerTemp = L.marker([lat, lng], {
+            icon: pulsingIcon,
+            zIndexOffset: 1000
+        }).addTo(map);
+
+        // Mostrar popup después de un momento
+        setTimeout(() => {
+            const popupContent = crearPopupContenido(lugarEncontrado);
+            markerTemp.bindPopup(popupContent, {
+                maxWidth: 350,
+                minWidth: 300,
+                className: 'custom-popup'
+            }).openPopup();
+
+            // Remover el marcador temporal después de 30 segundos
+            setTimeout(() => {
+                map.removeLayer(markerTemp);
+            }, 30000);
+        }, 1000);
+    }
+};
+
+// Al cargar la página, verificar si hay parámetros en la URL
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const lat = urlParams.get('lat');
+    const lng = urlParams.get('lng');
+    const id = urlParams.get('id');
+    
+    if (lat && lng && id) {
+        // Esperar a que el mapa esté completamente cargado
+        setTimeout(() => {
+            window.irALugarEnMapa(parseFloat(lat), parseFloat(lng), parseInt(id));
+        }, 1500);
+
+        // Limpiar la URL después de procesar
+        setTimeout(() => {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }, 3000);
+    }
+});
+
+// CSS para el marcador pulsante
+const pulsatingStyle = document.createElement('style');
+pulsatingStyle.innerHTML = `
+    .pulsing-marker {
+        background: transparent;
+        border: none;
+    }
+
+    .pulse-icon {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pulse-icon::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #E07B39;
+        border-radius: 50%;
+        opacity: 0;
+        animation: pulse 2s ease-out infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(0.5);
+            opacity: 0.8;
+        }
+        50% {
+            transform: scale(1.5);
+            opacity: 0.4;
+        }
+        100% {
+            transform: scale(2.5);
+            opacity: 0;
+        }
+    }
+
+    .pulse-icon i {
+        position: relative;
+        z-index: 10;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        animation: bounce 1s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+`;
+document.head.appendChild(pulsatingStyle);

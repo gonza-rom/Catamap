@@ -196,11 +196,20 @@ $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeho
                                 <?php echo htmlspecialchars($lugar['direccion']); ?>
                             </div>
                         </div>
-                        <div class="info-item">
-                            <i class="bi bi-globe"></i>
-                            <div>
-                                <strong>Coordenadas:</strong><br>
-                                Lat: <?php echo $lugar['lat']; ?>, Lng: <?php echo $lugar['lng']; ?>
+                        <!-- Reemplaza la sección de coordenadas con esto -->
+                        <div class="info-item" style="position: relative; overflow: hidden;">
+                            <i class="bi bi-map"></i>
+                            <div style="flex: 1;">
+                                <strong>Ubicación en el mapa:</strong><br>
+                                <div id="miniMapa" style="width: 100%; height: 250px; border-radius: 8px; margin-top: 10px; cursor: pointer; position: relative;" 
+                                    onclick="irAlMapaPrincipal()"
+                                    title="Haz clic para ver en el mapa principal">
+                                    <!-- El mapa se cargará aquí -->
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: rgba(255,255,255,0.9); padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); pointer-events: none;">
+                                        <i class="bi bi-cursor-fill" style="font-size: 1.5rem; color: #E07B39;"></i>
+                                        <p style="margin: 5px 0 0 0; font-weight: 600; color: #333;">Click para ver en mapa completo</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -373,7 +382,8 @@ $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeho
 
     <!-- Template Javascript -->
     <script src="../js/main.js"></script>
-
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>                        
     <script>
         const idLugar = <?php echo $id; ?>;
         const usuarioLogueado = <?php echo $usuario_logueado ? 'true' : 'false'; ?>;
@@ -534,6 +544,66 @@ $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeho
                 window.location.href = '../index.php';
             }
         });
+
+        const lugarLat = <?php echo $lugar['lat']; ?>;
+        const lugarLng = <?php echo $lugar['lng']; ?>;
+        const lugarNombre = "<?php echo addslashes($lugar['nombre']); ?>";
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Crear el mini mapa
+            const miniMap = L.map('miniMapa', {
+                center: [lugarLat, lugarLng],
+                zoom: 14,
+                zoomControl: false,
+                dragging: false,
+                scrollWheelZoom: false,
+                doubleClickZoom: false,
+                touchZoom: false,
+                boxZoom: false,
+                keyboard: false
+            });
+
+            // Agregar capa base
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(miniMap);
+
+            // Crear un ícono personalizado
+            const customIcon = L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+
+            // Agregar marcador
+            const marker = L.marker([lugarLat, lugarLng], {
+                icon: customIcon
+            }).addTo(miniMap);
+
+            // Agregar popup al marcador
+            marker.bindPopup(`
+                <div style="text-align: center; padding: 5px;">
+                    <strong>${lugarNombre}</strong><br>
+                    <small style="color: #666;">Click en el mapa para más opciones</small>
+                </div>
+            `).openPopup();
+
+            // Agregar círculo de área
+            L.circle([lugarLat, lugarLng], {
+                color: '#E07B39',
+                fillColor: '#E07B39',
+                fillOpacity: 0.2,
+                radius: 200
+            }).addTo(miniMap);
+        });
+
+        // Función para redirigir al mapa principal
+        function irAlMapaPrincipal() {
+            window.location.href = `mapa-catamarca.php?lat=${lugarLat}&lng=${lugarLng}&id=<?php echo $id; ?>`;
+        }
     </script>
 </body>
 </html>
