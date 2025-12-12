@@ -274,15 +274,29 @@ $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeho
                         <?php endif; ?>
 
                         <!-- Lista de comentarios -->
+                                                <!-- Lista de comentarios -->
                         <div id="comentarios-lista">
                             <?php if($result_comentarios->num_rows > 0): ?>
                                 <?php while($comentario = $result_comentarios->fetch_assoc()): ?>
                                     <div class="comment-item">
                                         <div class="comment-header">
-                                            <img src="<?php echo $comentario['imagen_perfil'] ? '../uploads/'.$comentario['imagen_perfil'] : 'https://ui-avatars.com/api/?name='.urlencode($comentario['usuario_nombre']).'&size=50&background=667eea&color=fff'; ?>" 
-                                                 class="comment-avatar" alt="Avatar">
+                                            <!-- Avatar clickeable -->
+                                            <a href="perfil-publico.php?user=<?php echo $comentario['id_usuario']; ?>" 
+                                               class="comment-avatar-link" 
+                                               title="Ver perfil de <?php echo htmlspecialchars($comentario['usuario_nombre']); ?>">
+                                                <img src="<?php echo $comentario['imagen_perfil'] ? '../uploads/'.$comentario['imagen_perfil'] : 'https://ui-avatars.com/api/?name='.urlencode($comentario['usuario_nombre']).'&size=50&background=667eea&color=fff'; ?>" 
+                                                     class="comment-avatar" 
+                                                     alt="Avatar">
+                                            </a>
                                             <div class="comment-user">
-                                                <h5><?php echo htmlspecialchars($comentario['usuario_nombre']); ?></h5>
+                                                <!-- Nombre clickeable -->
+                                                <h5>
+                                                    <a href="perfil-publico.php?user=<?php echo $comentario['id_usuario']; ?>" 
+                                                       class="comment-user-link"
+                                                       title="Ver perfil de <?php echo htmlspecialchars($comentario['usuario_nombre']); ?>">
+                                                        <?php echo htmlspecialchars($comentario['usuario_nombre']); ?>
+                                                    </a>
+                                                </h5>
                                                 <div class="comment-date">
                                                     <?php 
                                                     $fecha = new DateTime($comentario['fecha_creacion']);
@@ -310,9 +324,8 @@ $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeho
                                 </p>
                             <?php endif; ?>
                         </div>
-                    </div>
-                </div>
-
+                    </div> 
+</div> 
                 <!-- Columna derecha - Acciones -->
                 <div class="col-lg-4">
                     <div class="info-card sticky-top" style="top: 90px;">

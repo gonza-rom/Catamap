@@ -263,81 +263,81 @@ if(!empty($usuario_data['imagen_perfil']) && file_exists('../uploads/' . $usuari
                     <p class="text-muted">Ayúdanos a crecer el mapa de Catamarca compartiendo lugares increíbles</p>
                     
                     <!-- Reemplaza la sección del formulario en perfil.php -->
-<form id="formSugerirLugar">
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <label><i class="bi bi-geo-alt"></i> Nombre del Lugar *</label>
-                <input type="text" class="form-control" name="nombre" required placeholder="Ej: Cuesta del Portezuelo">
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label><i class="bi bi-pin-map"></i> Dirección</label>
-                <input type="text" class="form-control" name="direccion" placeholder="Ej: Ruta 4, km 15">
-            </div>
-        </div>
-        <div class="col-12">
-            <div class="form-group">
-                <label><i class="bi bi-card-text"></i> Descripción * (mínimo 50 caracteres)</label>
-                <textarea class="form-control" name="descripcion" rows="4" required placeholder="Describe el lugar, qué lo hace especial, qué actividades se pueden hacer..."></textarea>
-                <small class="text-muted">Caracteres: <span id="charCount">0</span>/50</small>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label><i class="bi bi-tag"></i> Categoría *</label>
-                <select class="form-control" name="id_categoria" required>
-                    <option value="">Seleccionar...</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label><i class="bi bi-map"></i> Departamento *</label>
-                <select class="form-control" name="id_departamento" required>
-                    <option value="">Seleccionar...</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label><i class="bi bi-image"></i> Imagen</label>
-                <input type="file" class="form-control-file" name="imagen" accept="image/*">
-                <small class="text-muted">Máximo 5MB</small>
-            </div>
-        </div>
-        
-        <!-- Coordenadas ocultas pero funcionales -->
-        <input type="hidden" name="lat" id="inputLat" required>
-        <input type="hidden" name="lng" id="inputLng" required>
-        
-        <div class="col-12">
-            <div class="alert alert-info d-flex align-items-center">
-                <i class="bi bi-cursor-fill" style="font-size: 1.5rem; margin-right: 10px;"></i>
-                <div class="flex-grow-1">
-                    <strong>Ubica el lugar en el mapa</strong>
-                    <p class="mb-0 small">Haz clic en el mapa para marcar la ubicación exacta del lugar que deseas sugerir</p>
-                    <small id="coordenadasMarcadas" class="text-success d-none">
-                        <i class="bi bi-check-circle-fill"></i> Ubicación marcada correctamente
-                    </small>
-                </div>
-            </div>
-            <div id="map" style="position: relative;">
-                <!-- Indicador de ubicación marcada -->
-                <div id="ubicacionIndicador" class="ubicacion-marcada d-none">
-                    <i class="bi bi-geo-alt-fill"></i>
-                    <span>Ubicación seleccionada</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 mt-3">
-            <button type="submit" class="btn btn-success btn-lg btn-block">
-                <i class="bi bi-send"></i> Enviar Sugerencia para Revisión
-            </button>
-        </div>
-    </div>
-</form>
+                    <form id="formSugerirLugar">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label><i class="bi bi-geo-alt"></i> Nombre del Lugar *</label>
+                                    <input type="text" class="form-control" name="nombre" required placeholder="Ej: Cuesta del Portezuelo">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label><i class="bi bi-pin-map"></i> Dirección</label>
+                                    <input type="text" class="form-control" name="direccion" placeholder="Ej: Ruta 4, km 15">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label><i class="bi bi-card-text"></i> Descripción * (mínimo 50 caracteres)</label>
+                                    <textarea class="form-control" name="descripcion" rows="4" required placeholder="Describe el lugar, qué lo hace especial, qué actividades se pueden hacer..."></textarea>
+                                    <small class="text-muted">Caracteres: <span id="charCount">0</span>/50</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label><i class="bi bi-tag"></i> Categoría *</label>
+                                    <select class="form-control" name="id_categoria" required>
+                                        <option value="">Seleccionar...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label><i class="bi bi-map"></i> Departamento *</label>
+                                    <select class="form-control" name="id_departamento" required>
+                                        <option value="">Seleccionar...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label><i class="bi bi-image"></i> Imagen</label>
+                                    <input type="file" class="form-control-file" name="imagen" accept="image/*">
+                                    <small class="text-muted">Máximo 5MB</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Coordenadas ocultas pero funcionales -->
+                            <input type="hidden" name="lat" id="inputLat" required>
+                            <input type="hidden" name="lng" id="inputLng" required>
+                            
+                            <div class="col-12">
+                                <div class="alert alert-info d-flex align-items-center">
+                                    <i class="bi bi-cursor-fill" style="font-size: 1.5rem; margin-right: 10px;"></i>
+                                    <div class="flex-grow-1">
+                                        <strong>Ubica el lugar en el mapa</strong>
+                                        <p class="mb-0 small">Haz clic en el mapa para marcar la ubicación exacta del lugar que deseas sugerir</p>
+                                        <small id="coordenadasMarcadas" class="text-success d-none">
+                                            <i class="bi bi-check-circle-fill"></i> Ubicación marcada correctamente
+                                        </small>
+                                    </div>
+                                </div>
+                                <div id="map" style="position: relative;">
+                                    <!-- Indicador de ubicación marcada -->
+                                    <div id="ubicacionIndicador" class="ubicacion-marcada d-none">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                        <span>Ubicación seleccionada</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button type="submit" class="btn btn-success btn-lg btn-block">
+                                    <i class="bi bi-send"></i> Enviar Sugerencia para Revisión
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
 
                 <!-- Tab: Seguidores/Social -->

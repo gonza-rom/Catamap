@@ -400,3 +400,47 @@ body {
                 flex-direction: column;
             }
         }
+
+
+        /* Agregar al final de styles/detalle-lugar.css */
+
+/* Links de perfil en comentarios */
+.comment-avatar-link {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.comment-avatar-link:hover {
+    transform: scale(1.1);
+}
+
+.comment-avatar-link:hover .comment-avatar {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+.comment-user-link {
+    color: #2c3e50;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.comment-user-link:hover {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.comment-user-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: #667eea;
+    transition: width 0.3s ease;
+}
+
+.comment-user-link:hover::after {
+    width: 100%;
+}

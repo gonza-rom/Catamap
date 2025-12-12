@@ -273,12 +273,17 @@ while($row = $result_insignias->fetch_assoc()) {
                 </p>
                 
                 <?php if(!$es_dueno && isset($_SESSION['user_id'])): ?>
-                    <button class="btn btn-seguir <?php echo $siguiendo ? 'btn-siguiendo' : ''; ?>" 
-                            id="btnSeguir" 
-                            onclick="toggleSeguir(<?php echo $id_usuario_perfil; ?>)">
-                        <i class="bi <?php echo $siguiendo ? 'bi-check-circle' : 'bi-plus-circle'; ?>"></i>
-                        <?php echo $siguiendo ? 'Siguiendo' : 'Seguir'; ?>
-                    </button>
+                    <div class="d-flex gap-2" style="gap: 10px; justify-content: center;">
+                        <button class="btn btn-seguir <?php echo $siguiendo ? 'btn-siguiendo' : ''; ?>" 
+                                id="btnSeguir" 
+                                onclick="toggleSeguir(<?php echo $id_usuario_perfil; ?>)">
+                            <i class="bi <?php echo $siguiendo ? 'bi-check-circle' : 'bi-plus-circle'; ?>"></i>
+                            <?php echo $siguiendo ? 'Siguiendo' : 'Seguir'; ?>
+                        </button>
+                        <button class="btn btn-primary" onclick="window.location.href='mensajes.php?chat=<?php echo $id_usuario_perfil; ?>'">
+                            <i class="bi bi-chat-dots"></i> Enviar Mensaje
+                        </button>
+                    </div>
                 <?php elseif($es_dueno): ?>
                     <a href="perfil.php" class="btn btn-light">
                         <i class="bi bi-gear"></i> Editar Perfil

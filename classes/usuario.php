@@ -8,6 +8,9 @@ class Usuario {
     public $email;
     public $password;
     public $tipo_usuario;
+    public $rol;
+    // public $imagen_perfil; // Ya declarado abajo
+    // public $telefono; // Ya declarado abajo
     public $fecha_registro;
     public $ultimo_acceso;
     public $estado;
@@ -189,6 +192,72 @@ class Usuario {
         $query = "DELETE FROM sesiones_usuarios WHERE token = :token";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":token", $token);
+        return $stmt->execute();
+    }
+
+    // Verificar si el usuario es administrador
+    public function esAdmin() {
+        // Primero verificar si existe la columna 'rol'
+        $query = "SHOW COLUMNS FROM " . $this->table_name . " LIKE 'rol'";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        
+        if($stmt->rowCount() > 0) {
+            // Si existe la columna 'rol', usarla
+            $query = "SELECT rol FROM " . $this->table_name . " WHERE id = :id LIMIT 1";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(":id", $this->id);
+            $stmt->execute();
+            
+            if($stmt->rowCount() > 0) {
+                $row = $stmt->fetch();
+                // Aceptar tanto 'admin' como 'administrador'
+                return $row['rol'] === 'admin' || $row['rol'] === 'administrador';
+            }
+        } else {
+            // Fallback: usar tipo_usuario si 'rol' no existe aún
+            return $this->tipo_usuario === 'admin' || $this->tipo_usuario === 'administrador';
+        }
+        
+        return false;
+    }
+
+    // Cambiar rol de usuario (solo para admins)
+    public function cambiarRol($nuevo_rol) {
+        $roles_validos = ['usuario', 'emprendedor', 'administrador'];
+        
+        if(!in_array($nuevo_rol, $roles_validos)) {
+            return false;
+        }
+        
+        $query = "UPDATE " . $this->table_name . " 
+                  SET rol = :rol, tipo_usuario = :tipo_usuario 
+                  WHERE id = :id";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":rol", $nuevo_rol);
+        $stmt->bindParam(":tipo_usuario", $nuevo_rol);
+        $stmt->bindParam(":id", $this->id);
+        
+        return $stmt->execute();
+    }
+
+    // Cambiar estado de usuario (activo/suspendido/inactivo)
+    public function cambiarEstado($nuevo_estado) {
+        $estados_validos = ['activo', 'suspendido', 'inactivo'];
+        
+        if(!in_array($nuevo_estado, $estados_validos)) {
+            return false;
+        }
+        
+        $query = "UPDATE " . $this->table_name . " 
+                  SET estado = :estado 
+                  WHERE id = :id";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":estado", $nuevo_estado);
+        $stmt->bindParam(":id", $this->id);
+        
         return $stmt->execute();
     }
 }
