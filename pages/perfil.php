@@ -31,7 +31,7 @@ $usuario_data = $stmt_usuario->get_result()->fetch_assoc();
 // Obtener estadísticas completas
 $sql_stats = "SELECT 
     (SELECT COUNT(*) FROM favoritos WHERE id_usuario = ?) as total_favoritos,
-    (SELECT COUNT(*) FROM comentarios WHERE id_usuario = ? AND aprobado = 1) as total_resenas,
+    (SELECT COUNT(*) FROM comentarios WHERE id_usuario = ? AND estado = 'aprobado') as total_resenas,
     (SELECT COUNT(*) FROM lugares_sugeridos WHERE id_usuario = ?) as total_sugerencias,
     (SELECT COUNT(*) FROM seguidores WHERE id_seguido = ?) as total_seguidores,
     (SELECT COUNT(*) FROM seguidores WHERE id_seguidor = ?) as total_siguiendo";
@@ -702,14 +702,14 @@ function cargarFavoritos() {
             if (data.success && data.favoritos && data.favoritos.length > 0) {
                 let html = '';
                 data.favoritos.forEach(fav => {
-                    const imagenUrl = fav.imagen ? `../uploads/${fav.imagen}` : '../img/placeholder.jpg';
+                    const imagenUrl = fav.imagen ? `../uploads/${fav.imagen}` : '../img/placeholder.webp';
                     
                     html += `
                         <div class="col-md-4 mb-4" data-favorito-id="${fav.id_lugar}">
                             <div class="favorito-card">
                                 <img src="${imagenUrl}" class="lugar-imagen" 
                                      alt="${fav.nombre}"
-                                     onerror="this.src='../img/placeholder.jpg'">
+                                     onerror="this.src='../img/placeholder.webp'">
                                 <h5><i class="bi bi-geo-alt-fill text-danger"></i> ${fav.nombre}</h5>
                                 <p class="text-muted mb-2">
                                     <small>

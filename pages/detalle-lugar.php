@@ -50,6 +50,11 @@ $esFavorito = false;
 if($usuario_logueado) {
     $sql_fav = "SELECT id FROM favoritos WHERE id_usuario = ? AND id_lugar = ?";
     $stmt_fav = $conexion->prepare($sql_fav);
+    
+    if ($stmt_fav === false) {
+        die("Error en favoritos: " . $conexion->error);
+    }
+    
     $stmt_fav->bind_param("ii", $usuario_logueado['id'], $id);
     $stmt_fav->execute();
     $esFavorito = $stmt_fav->get_result()->num_rows > 0;
@@ -57,25 +62,47 @@ if($usuario_logueado) {
 }
 
 // Obtener comentarios del lugar
-$sql_comentarios = "SELECT c.*, u.nombre as usuario_nombre, u.imagen_perfil
+$sql_comentarios = "SELECT c.id, c.id_lugar, c.id_usuario, c.calificacion, c.comentario, 
+                           c.estado, c.fecha_creacion, c.fecha_modificacion,
+                           u.nombre as usuario_nombre, u.imagen_perfil
                     FROM comentarios c
                     INNER JOIN usuarios u ON c.id_usuario = u.id
-                    WHERE c.id_lugar = ? AND c.aprobado = 1
+                    WHERE c.id_lugar = ? AND c.estado = 'aprobado'
                     ORDER BY c.fecha_creacion DESC";
+
 $stmt_com = $conexion->prepare($sql_comentarios);
+
+if ($stmt_com === false) {
+    die("Error preparando consulta de comentarios: " . $conexion->error);
+}
+
 $stmt_com->bind_param("i", $id);
-$stmt_com->execute();
+
+if (!$stmt_com->execute()) {
+    die("Error ejecutando consulta de comentarios: " . $stmt_com->error);
+}
+
 $result_comentarios = $stmt_com->get_result();
 
 // Calcular promedio de calificaciones
-$sql_promedio = "SELECT AVG(calificacion) as promedio, COUNT(*) as total
-                 FROM comentarios
-                 WHERE id_lugar = ? AND aprobado = 1";
+$sql_promedio = "SELECT AVG(c.calificacion) as promedio, COUNT(*) as total
+                 FROM comentarios c
+                 WHERE c.id_lugar = ? AND c.estado = 'aprobado'";
+
 $stmt_prom = $conexion->prepare($sql_promedio);
+
+if ($stmt_prom === false) {
+    die("Error preparando consulta de promedio: " . $conexion->error);
+}
+
 $stmt_prom->bind_param("i", $id);
-$stmt_prom->execute();
+
+if (!$stmt_prom->execute()) {
+    die("Error ejecutando consulta de promedio: " . $stmt_prom->error);
+}
+
 $resultado_prom = $stmt_prom->get_result()->fetch_assoc();
-$promedio_calificacion = round($resultado_prom['promedio'], 1);
+$promedio_calificacion = $resultado_prom['promedio'] ? round($resultado_prom['promedio'], 1) : 0;
 $total_comentarios = $resultado_prom['total'];
 
 $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeholder.jpg';
@@ -100,6 +127,8 @@ $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeho
     <!-- CSS -->
     <link href="../css/style.css" rel="stylesheet">
     <link rel="stylesheet" href="../styles/detalle-lugar.css">
+    <!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
     <!-- Loading Overlay -->
@@ -445,22 +474,46 @@ $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeho
             e.preventDefault();
             
             if(calificacionSeleccionada === 0) {
-                alert('Por favor, selecciona una calificación');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Calificación requerida',
+                    text: 'Por favor, selecciona una calificación con las estrellas',
+                    confirmButtonColor: '#E07B39'
+                });
                 return;
             }
             
             const comentario = $('#comentario').val().trim();
             if(!comentario) {
-                alert('Por favor, escribe tu opinión');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Comentario vacío',
+                    text: 'Por favor, escribe tu opinión',
+                    confirmButtonColor: '#E07B39'
+                });
                 return;
             }
             
             if(comentario.length < 10) {
-                alert('El comentario debe tener al menos 10 caracteres');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Comentario muy corto',
+                    text: 'El comentario debe tener al menos 10 caracteres',
+                    confirmButtonColor: '#E07B39'
+                });
                 return;
             }
             
-            $('#loadingOverlay').addClass('active');
+            // Mostrar loading
+            Swal.fire({
+                title: 'Publicando opinión...',
+                html: 'Por favor espera un momento',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
             
             try {
                 const response = await fetch('../api/comentarios.php', {
@@ -478,25 +531,50 @@ $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeho
                 const data = await response.json();
                 
                 if(data.success) {
-                    alert('¡Gracias por tu opinión!');
+                    await Swal.fire({
+                        icon: 'success',
+                        title: '¡Opinión publicada!',
+                        text: 'Gracias por compartir tu experiencia',
+                        confirmButtonColor: '#E07B39',
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
+                    
                     // Recargar la página para mostrar el nuevo comentario
                     window.location.reload();
                 } else {
-                    alert(data.message || 'Error al enviar la opinión');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'No se pudo publicar tu opinión',
+                        confirmButtonColor: '#E07B39'
+                    });
                 }
             } catch(error) {
                 console.error('Error:', error);
-                alert('Error al enviar la opinión');
-            } finally {
-                $('#loadingOverlay').removeClass('active');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: 'No se pudo conectar con el servidor. Intenta nuevamente.',
+                    confirmButtonColor: '#E07B39'
+                });
             }
         });
-        
-        // Toggle favorito
+                
+                // Toggle favorito
         async function toggleFavorito(idLugar) {
             if(!usuarioLogueado) {
-                alert('Debes iniciar sesión para agregar a favoritos');
-                window.location.href = '../index.php';
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Inicia sesión',
+                    text: 'Debes iniciar sesión para agregar lugares a favoritos',
+                    confirmButtonColor: '#E07B39',
+                    confirmButtonText: 'Ir a login'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '../index.php';
+                    }
+                });
                 return;
             }
             
@@ -504,7 +582,15 @@ $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeho
             const btnCard = $('#btnFavoritoCard');
             const esFavorito = btnHero.hasClass('active');
             
-            $('#loadingOverlay').addClass('active');
+            // Mostrar loading
+            Swal.fire({
+                title: esFavorito ? 'Quitando de favoritos...' : 'Agregando a favoritos...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
             
             try {
                 const response = await fetch('../api/favoritos.php', {
@@ -524,37 +610,85 @@ $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeho
                         btnHero.find('i').removeClass('bi-heart-fill').addClass('bi-heart');
                         btnCard.removeClass('btn-primary-custom').addClass('btn-outline-custom');
                         btnCard.html('<i class="bi bi-heart"></i> Guardar en favoritos');
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Eliminado',
+                            text: 'Se quitó de tus favoritos',
+                            confirmButtonColor: '#E07B39',
+                            timer: 1500,
+                            timerProgressBar: true,
+                            showConfirmButton: false
+                        });
                     } else {
                         // Agregar a favoritos
                         btnHero.addClass('active');
                         btnHero.find('i').removeClass('bi-heart').addClass('bi-heart-fill');
                         btnCard.removeClass('btn-outline-custom').addClass('btn-primary-custom');
                         btnCard.html('<i class="bi bi-heart-fill"></i> En favoritos');
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Agregado!',
+                            text: 'Se guardó en tus favoritos',
+                            confirmButtonColor: '#E07B39',
+                            timer: 1500,
+                            timerProgressBar: true,
+                            showConfirmButton: false
+                        });
                     }
                 } else {
-                    alert(data.message || 'Error al procesar la solicitud');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'No se pudo procesar la solicitud',
+                        confirmButtonColor: '#E07B39'
+                    });
                 }
             } catch(error) {
                 console.error('Error:', error);
-                alert('Error al procesar la solicitud');
-            } finally {
-                $('#loadingOverlay').removeClass('active');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: 'No se pudo conectar con el servidor',
+                    confirmButtonColor: '#E07B39'
+                });
             }
         }
-        
-        // Logout
+                
+                // Logout
         $('#btnLogout').click(async function(e) {
             e.preventDefault();
-            if(!confirm('¿Cerrar sesión?')) return;
             
-            try {
-                await fetch('../api/logout.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+            const result = await Swal.fire({
+                icon: 'question',
+                title: '¿Cerrar sesión?',
+                text: '¿Estás seguro que deseas salir?',
+                showCancelButton: true,
+                confirmButtonColor: '#E07B39',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            });
+            
+            if(result.isConfirmed) {
+                Swal.fire({
+                    title: 'Cerrando sesión...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
                 });
-                window.location.href = '../index.php';
-            } catch(error) {
-                window.location.href = '../index.php';
+                
+                try {
+                    await fetch('../api/logout.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    window.location.href = '../index.php';
+                } catch(error) {
+                    window.location.href = '../index.php';
+                }
             }
         });
 
@@ -618,5 +752,7 @@ $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeho
             window.location.href = `mapa-catamarca.php?lat=${lugarLat}&lng=${lugarLng}&id=<?php echo $id; ?>`;
         }
     </script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>

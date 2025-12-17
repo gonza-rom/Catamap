@@ -45,10 +45,17 @@ if($method === 'GET') {
     $sql = "SELECT c.*, u.nombre as usuario_nombre, u.imagen_perfil
             FROM comentarios c
             INNER JOIN usuarios u ON c.id_usuario = u.id
-            WHERE c.id_lugar = ? AND c.aprobado = 1
+            WHERE c.id_lugar = ? AND c.estado = 'aprobado'
             ORDER BY c.fecha_creacion DESC";
     
     $stmt = $conexion->prepare($sql);
+    
+    if($stmt === false) {
+        http_response_code(500);
+        echo json_encode(array("success" => false, "message" => "Error al preparar consulta: " . $conexion->error));
+        exit();
+    }
+    
     $stmt->bind_param("i", $id_lugar);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -68,8 +75,15 @@ if($method === 'GET') {
     // Obtener promedio
     $sql_prom = "SELECT AVG(calificacion) as promedio, COUNT(*) as total
                  FROM comentarios
-                 WHERE id_lugar = ? AND aprobado = 1";
+                 WHERE id_lugar = ? AND estado = 'aprobado'";
     $stmt_prom = $conexion->prepare($sql_prom);
+    
+    if($stmt_prom === false) {
+        http_response_code(500);
+        echo json_encode(array("success" => false, "message" => "Error al calcular promedio: " . $conexion->error));
+        exit();
+    }
+    
     $stmt_prom->bind_param("i", $id_lugar);
     $stmt_prom->execute();
     $result_prom = $stmt_prom->get_result()->fetch_assoc();
@@ -120,6 +134,13 @@ if($method === 'POST') {
     // Verificar si el lugar existe
     $sql_check_lugar = "SELECT id FROM lugares_turisticos WHERE id = ?";
     $stmt_check = $conexion->prepare($sql_check_lugar);
+    
+    if($stmt_check === false) {
+        http_response_code(500);
+        echo json_encode(array("success" => false, "message" => "Error al verificar lugar: " . $conexion->error));
+        exit();
+    }
+    
     $stmt_check->bind_param("i", $id_lugar);
     $stmt_check->execute();
     if($stmt_check->get_result()->num_rows === 0) {
@@ -131,6 +152,13 @@ if($method === 'POST') {
     // Verificar si el usuario ya comentó este lugar
     $sql_check = "SELECT id FROM comentarios WHERE id_usuario = ? AND id_lugar = ?";
     $stmt = $conexion->prepare($sql_check);
+    
+    if($stmt === false) {
+        http_response_code(500);
+        echo json_encode(array("success" => false, "message" => "Error al verificar comentario previo: " . $conexion->error));
+        exit();
+    }
+    
     $stmt->bind_param("ii", $id_usuario, $id_lugar);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -138,9 +166,16 @@ if($method === 'POST') {
     if($result->num_rows > 0) {
         // Actualizar comentario existente
         $sql_update = "UPDATE comentarios 
-                       SET calificacion = ?, comentario = ?, aprobado = 1, fecha_modificacion = NOW()
+                       SET calificacion = ?, comentario = ?, estado = 'aprobado', fecha_modificacion = NOW()
                        WHERE id_usuario = ? AND id_lugar = ?";
         $stmt = $conexion->prepare($sql_update);
+        
+        if($stmt === false) {
+            http_response_code(500);
+            echo json_encode(array("success" => false, "message" => "Error al preparar actualización: " . $conexion->error));
+            exit();
+        }
+        
         $stmt->bind_param("isii", $calificacion, $comentario, $id_usuario, $id_lugar);
         
         if($stmt->execute()) {
@@ -152,17 +187,47 @@ if($method === 'POST') {
             http_response_code(500);
             echo json_encode(array(
                 "success" => false,
-                "message" => "Error al actualizar la opinión"
+                "message" => "Error al actualizar la opinión: " . $stmt->error
             ));
         }
     } else {
-        // Insertar nuevo comentario (AUTO-APROBADO para desarrollo)
-        $sql_insert = "INSERT INTO comentarios (id_lugar, id_usuario, calificacion, comentario, aprobado) 
-                       VALUES (?, ?, ?, ?, 1)";
+        // Insertar nuevo comentario (AUTO-APROBADO)
+        $sql_insert = "INSERT INTO comentarios (id_lugar, id_usuario, calificacion, comentario, estado) 
+                       VALUES (?, ?, ?, ?, 'aprobado')";
         $stmt = $conexion->prepare($sql_insert);
+        
+        if($stmt === false) {
+            http_response_code(500);
+            echo json_encode(array("success" => false, "message" => "Error al preparar inserción: " . $conexion->error));
+            exit();
+        }
+        
         $stmt->bind_param("iiis", $id_lugar, $id_usuario, $calificacion, $comentario);
         
         if($stmt->execute()) {
+            // Verificar insignias
+            $sql_count = "SELECT COUNT(*) as total FROM comentarios WHERE id_usuario = ?";
+            $stmt_count = $conexion->prepare($sql_count);
+            $stmt_count->bind_param("i", $id_usuario);
+            $stmt_count->execute();
+            $total_comentarios = $stmt_count->get_result()->fetch_assoc()['total'];
+            
+            // Otorgar insignia "Crítico" (primer comentario)
+            if($total_comentarios == 1) {
+                $sql_insignia = "INSERT IGNORE INTO usuarios_insignias (id_usuario, id_insignia) VALUES (?, 2)";
+                $stmt_ins = $conexion->prepare($sql_insignia);
+                $stmt_ins->bind_param("i", $id_usuario);
+                $stmt_ins->execute();
+            }
+            
+            // Otorgar insignia "Guía Local" (10 comentarios)
+            if($total_comentarios == 10) {
+                $sql_insignia = "INSERT IGNORE INTO usuarios_insignias (id_usuario, id_insignia) VALUES (?, 5)";
+                $stmt_ins = $conexion->prepare($sql_insignia);
+                $stmt_ins->bind_param("i", $id_usuario);
+                $stmt_ins->execute();
+            }
+            
             echo json_encode(array(
                 "success" => true,
                 "message" => "¡Tu opinión ha sido publicada correctamente!",
@@ -172,7 +237,7 @@ if($method === 'POST') {
             http_response_code(500);
             echo json_encode(array(
                 "success" => false,
-                "message" => "Error al guardar la opinión"
+                "message" => "Error al guardar la opinión: " . $stmt->error
             ));
         }
     }
@@ -193,6 +258,13 @@ if($method === 'DELETE') {
     
     $sql = "DELETE FROM comentarios WHERE id = ? AND id_usuario = ?";
     $stmt = $conexion->prepare($sql);
+    
+    if($stmt === false) {
+        http_response_code(500);
+        echo json_encode(array("success" => false, "message" => "Error al preparar eliminación: " . $conexion->error));
+        exit();
+    }
+    
     $stmt->bind_param("ii", $id_comentario, $id_usuario);
     
     if($stmt->execute()) {
@@ -212,7 +284,7 @@ if($method === 'DELETE') {
         http_response_code(500);
         echo json_encode(array(
             "success" => false,
-            "message" => "Error al eliminar comentario"
+            "message" => "Error al eliminar comentario: " . $stmt->error
         ));
     }
     exit();

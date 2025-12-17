@@ -471,6 +471,7 @@ function renderLugaresTable(lugares, pagination) {
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Imagen</th>
                     <th>Nombre</th>
                     <th>Categoría</th>
                     <th>Departamento</th>
@@ -484,9 +485,20 @@ function renderLugaresTable(lugares, pagination) {
     `;
 
     lugares.forEach(lugar => {
+        // Construir URL de la imagen
+        const imagenUrl = lugar.imagen 
+            ? '../uploads/' + lugar.imagen 
+            : '../img/placeholder.webp';
+
         html += `
             <tr>
                 <td>${lugar.id}</td>
+                <td>
+                    <img src="${imagenUrl}" 
+                         alt="${lugar.nombre}" 
+                         style="width: 200px; height: 100px; object-fit: cover; border-radius: 4px;"
+                         onerror="this.src='../img/placeholder.webp'">
+                </td>
                 <td><strong>${lugar.nombre}</strong></td>
                 <td>${lugar.categoria_nombre || '-'}</td>
                 <td>${lugar.departamento_nombre || '-'}</td>
@@ -514,20 +526,61 @@ function renderLugaresTable(lugares, pagination) {
 function editarLugar(id) {
     if (window.currentLugares) {
         const l = window.currentLugares.find(x => x.id == id);
-        if (l) showEditarLugarModal(l);
-        else showError('Error', 'Lugar no encontrado en memoria');
+        if (l) {
+            // Cargar departamentos y categorías antes de mostrar el modal
+            cargarDatosParaEdicion(l);
+        } else {
+            showError('Error', 'Lugar no encontrado en memoria');
+        }
     } else {
         showError('Error', 'Datos no cargados. Recarga la página.');
     }
 }
 
-function showEditarLugarModal(lugar) {
+function cargarDatosParaEdicion(lugar) {
+    // Hacer ambas peticiones en paralelo
+    Promise.all([
+        $.ajax({ url: '../api/admin/departamentos.php', method: 'GET' }),
+        $.ajax({ url: '../api/admin/categorias.php', method: 'GET' })
+    ])
+    .then(([deptResponse, catResponse]) => {
+        if(deptResponse.success && catResponse.success) {
+            showEditarLugarModal(lugar, deptResponse.data, catResponse.data);
+        } else {
+            showError('Error', 'No se pudieron cargar los datos necesarios');
+        }
+    })
+    .catch(() => {
+        showError('Error', 'Error al cargar departamentos y categorías');
+    });
+}
+
+function showEditarLugarModal(lugar, departamentos, categorias) {
+    // Generar opciones de departamentos
+    let departamentosOptions = '';
+    departamentos.forEach(dept => {
+        const selected = dept.id == lugar.id_departamento ? 'selected' : '';
+        departamentosOptions += `<option value="${dept.id}" ${selected}>${dept.nombre}</option>`;
+    });
+
+    // Generar opciones de categorías
+    let categoriasOptions = '';
+    categorias.forEach(cat => {
+        const selected = cat.id_categoria == lugar.id_categoria ? 'selected' : '';
+        categoriasOptions += `<option value="${cat.id_categoria}" ${selected}>${cat.nombre}</option>`;
+    });
+
+    // URL de la imagen actual
+    const imagenActual = lugar.imagen 
+        ? '../uploads/' + lugar.imagen 
+        : '../img/placeholder.webp';
+
     const modalHTML = `
         <div class="modal fade" id="editarLugarModal" tabindex="-1">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Editar: ${lugar.nombre}</h5>
+                        <h5 class="modal-title">Editar Lugar</h5>
                         <button type="button" class="close" data-dismiss="modal">
                             <span>&times;</span>
                         </button>
@@ -535,9 +588,50 @@ function showEditarLugarModal(lugar) {
                     <div class="modal-body">
                         <form id="editarLugarForm">
                             <input type="hidden" id="edit-lugar-id" value="${lugar.id}">
+                            
                             <div class="form-group">
-                                <label>Estado</label>
-                                <select class="form-control" id="edit-lugar-estado">
+                                <label>Imagen Actual</label>
+                                <div class="mb-2">
+                                    <img id="preview-imagen-lugar" 
+                                         src="${imagenActual}" 
+                                         alt="Preview" 
+                                         style="max-width: 200px; height: auto; border-radius: 8px; border: 2px solid #ddd;"
+                                         onerror="this.src='../img/placeholder.webp'">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Cambiar Imagen</label>
+                                <input type="file" class="form-control-file" id="edit-lugar-imagen" 
+                                       accept="image/*" onchange="previewImagenLugar(event)">
+                                <small class="form-text text-muted">Formatos permitidos: JPG, PNG, WEBP (Máx. 5MB)</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Nombre del Lugar <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="edit-lugar-nombre" 
+                                       value="${lugar.nombre}" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Categoría <span class="text-danger">*</span></label>
+                                <select class="form-control" id="edit-lugar-categoria" required>
+                                    <option value="">Seleccionar categoría</option>
+                                    ${categoriasOptions}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Departamento <span class="text-danger">*</span></label>
+                                <select class="form-control" id="edit-lugar-departamento" required>
+                                    <option value="">Seleccionar departamento</option>
+                                    ${departamentosOptions}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Estado <span class="text-danger">*</span></label>
+                                <select class="form-control" id="edit-lugar-estado" required>
                                     <option value="aprobado" ${lugar.estado === 'aprobado' ? 'selected' : ''}>Aprobado</option>
                                     <option value="pendiente" ${lugar.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
                                     <option value="rechazado" ${lugar.estado === 'rechazado' ? 'selected' : ''}>Rechazado</option>
@@ -547,7 +641,9 @@ function showEditarLugarModal(lugar) {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-primary" onclick="guardarLugarEditado()">Guardar</button>
+                        <button type="button" class="btn btn-primary" onclick="guardarLugarEditado()">
+                            <i class="bi bi-save"></i> Guardar Cambios
+                        </button>
                     </div>
                 </div>
             </div>
@@ -561,19 +657,76 @@ function showEditarLugarModal(lugar) {
     });
 }
 
+function previewImagenLugar(event) {
+    const file = event.target.files[0];
+    if (file) {
+        // Validar tamaño (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showError('Error', 'La imagen no debe superar los 5MB');
+            event.target.value = '';
+            return;
+        }
+
+        // Validar tipo
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            showError('Error', 'Formato no válido. Use JPG, PNG o WEBP');
+            event.target.value = '';
+            return;
+        }
+
+        // Mostrar preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            $('#preview-imagen-lugar').attr('src', e.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
 function guardarLugarEditado() {
-    const data = {
-        id: $('#edit-lugar-id').val(),
-        estado: $('#edit-lugar-estado').val()
-    };
+    const nombre = $('#edit-lugar-nombre').val().trim();
+    const categoria = $('#edit-lugar-categoria').val();
+    const departamento = $('#edit-lugar-departamento').val();
+    const estado = $('#edit-lugar-estado').val();
+    const imagenFile = $('#edit-lugar-imagen')[0].files[0];
+
+    // Validaciones
+    if(!nombre) {
+        showError('Error', 'El nombre del lugar es requerido');
+        return;
+    }
+
+    if(!categoria) {
+        showError('Error', 'Debe seleccionar una categoría');
+        return;
+    }
+
+    if(!departamento) {
+        showError('Error', 'Debe seleccionar un departamento');
+        return;
+    }
 
     showLoading('Guardando cambios...');
 
+    // Usar FormData para enviar archivo
+    const formData = new FormData();
+    formData.append('id', $('#edit-lugar-id').val());
+    formData.append('nombre', nombre);
+    formData.append('id_categoria', categoria);
+    formData.append('id_departamento', departamento);
+    formData.append('estado', estado);
+    
+    if (imagenFile) {
+        formData.append('imagen', imagenFile);
+    }
+
     $.ajax({
         url: '../api/admin/lugares.php',
-        method: 'PUT',
-        contentType: 'application/json',
-        data: JSON.stringify(data),
+        method: 'POST', // Cambiar a POST para soportar FormData
+        data: formData,
+        processData: false,
+        contentType: false,
         success: function (response) {
             Swal.close();
             $('#editarLugarModal').modal('hide');
@@ -584,9 +737,10 @@ function guardarLugarEditado() {
                 showError('Error', response.message || 'No se pudo actualizar');
             }
         },
-        error: () => {
+        error: function(xhr) {
             Swal.close();
-            showError('Error', 'Error al guardar');
+            const errorMsg = xhr.responseJSON?.message || 'Error al guardar';
+            showError('Error', errorMsg);
         }
     });
 }
@@ -650,6 +804,7 @@ function renderSugerenciasTable(sugerencias) {
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Imagen</th>
                     <th>Nombre</th>
                     <th>Usuario</th>
                     <th>Categoría</th>
@@ -665,6 +820,12 @@ function renderSugerenciasTable(sugerencias) {
         html += `
             <tr>
                 <td>${sug.id}</td>
+                <td>
+                    <img src="${sug.imagen_url}" 
+                         alt="${sug.nombre}" 
+                         style="width: 300px; height: 200px; object-fit: cover; border-radius: 4px;"
+                         onerror="this.src='../img/placeholder.webp'">
+                </td>
                 <td><strong>${sug.nombre}</strong></td>
                 <td>${sug.usuario_nombre || '-'}</td>
                 <td>${sug.categoria_nombre || '-'}</td>
@@ -914,7 +1075,7 @@ function renderCategoriasTable(categorias) {
                     <th>Nombre</th>
                     <th>Descripción</th>
                     <th>Icono</th>
-                    <th>Lugares</th>
+                    <th>Cantidad de lugares</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -922,27 +1083,30 @@ function renderCategoriasTable(categorias) {
     `;
 
     categorias.forEach(cat => {
-        const catId = cat.id_categoria || cat.id;
-        const iconDisplay = cat.icono ? `<i class="${cat.icono}" style="font-size: 1.5rem; color: #667eea;"></i>` : '-';
-        
-        html += `
-            <tr>
-                <td>${catId}</td>
-                <td><strong>${cat.nombre}</strong></td>
-                <td>${cat.descripcion || '-'}</td>
-                <td>${iconDisplay}</td>
-                <td>${cat.total_lugares}</td>
-                <td>
-                    <button class="btn-admin btn-admin-sm btn-admin-primary" onclick="editarCategoria(${catId})">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn-admin btn-admin-sm btn-admin-danger" onclick="eliminarCategoria(${catId}, '${cat.nombre}', ${cat.total_lugares})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
+    const catId = cat.id_categoria || cat.id;
+    // Mostrar el emoji directamente, sin etiqueta <i>
+    const iconDisplay = cat.icono ? 
+        `<span style="font-size: 1.5rem;">${cat.icono}</span>` : 
+        '-';
+    
+    html += `
+        <tr>
+            <td>${catId}</td>
+            <td><strong>${cat.nombre}</strong></td>
+            <td>${cat.descripcion || '-'}</td>
+            <td>${iconDisplay}</td>
+            <td>${cat.total_lugares} lugares.</td>
+            <td>
+                <button class="btn-admin btn-admin-sm btn-admin-primary" onclick="editarCategoria(${catId})">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn-admin btn-admin-sm btn-admin-danger" onclick="eliminarCategoria(${catId}, '${cat.nombre}', ${cat.total_lugares})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `;
+});
 
     html += '</tbody></table>';
 
@@ -1241,7 +1405,7 @@ function renderDepartamentosTable(departamentos) {
                 <tr>
                     <th>ID</th>
                     <th>Nombre</th>
-                    <th>Lugares</th>
+                    <th>Cantidad de lugares</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -1253,7 +1417,7 @@ function renderDepartamentosTable(departamentos) {
             <tr>
                 <td>${dep.id}</td>
                 <td><strong>${dep.nombre}</strong></td>
-                <td>${dep.total_lugares}</td>
+                <td>${dep.total_lugares} lugares.</td>
                 <td>
                     <button class="btn-admin btn-admin-sm btn-admin-primary" onclick="editarDepartamento(${dep.id})">
                         <i class="bi bi-pencil"></i>

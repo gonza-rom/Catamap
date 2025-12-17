@@ -100,7 +100,131 @@ if($method === 'GET') {
     exit();
 }
 
-// PUT: Editar lugar
+// POST: Editar lugar con imagen
+if($method === 'POST' && isset($_POST['id'])) {
+    $id_lugar = intval($_POST['id']);
+    
+    $updates = [];
+    $params = [];
+    $types = '';
+    
+    if(isset($_POST['nombre'])) {
+        $updates[] = "nombre = ?";
+        $params[] = $_POST['nombre'];
+        $types .= 's';
+    }
+    
+    if(isset($_POST['descripcion'])) {
+        $updates[] = "descripcion = ?";
+        $params[] = $_POST['descripcion'];
+        $types .= 's';
+    }
+    
+    if(isset($_POST['direccion'])) {
+        $updates[] = "direccion = ?";
+        $params[] = $_POST['direccion'];
+        $types .= 's';
+    }
+    
+    if(isset($_POST['estado'])) {
+        $estados_validos = ['aprobado', 'pendiente', 'rechazado'];
+        if(!in_array($_POST['estado'], $estados_validos)) {
+            http_response_code(400);
+            echo json_encode(["success" => false, "message" => "Estado inválido"]);
+            exit();
+        }
+        $updates[] = "estado = ?";
+        $params[] = $_POST['estado'];
+        $types .= 's';
+    }
+    
+    if(isset($_POST['id_categoria'])) {
+        $updates[] = "id_categoria = ?";
+        $params[] = intval($_POST['id_categoria']);
+        $types .= 'i';
+    }
+    
+    if(isset($_POST['id_departamento'])) {
+        $updates[] = "id_departamento = ?";
+        $params[] = intval($_POST['id_departamento']);
+        $types .= 'i';
+    }
+    
+    // Manejar la imagen si se subió una nueva
+    if(isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+        $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        $max_size = 5 * 1024 * 1024; // 5MB
+        
+        if(!in_array($_FILES['imagen']['type'], $allowed_types)) {
+            http_response_code(400);
+            echo json_encode(["success" => false, "message" => "Formato de imagen no válido"]);
+            exit();
+        }
+        
+        if($_FILES['imagen']['size'] > $max_size) {
+            http_response_code(400);
+            echo json_encode(["success" => false, "message" => "La imagen no debe superar 5MB"]);
+            exit();
+        }
+        
+        // Obtener imagen anterior para eliminarla
+        $sql_get_img = "SELECT imagen FROM lugares_turisticos WHERE id = ?";
+        $stmt_img = $conexion->prepare($sql_get_img);
+        $stmt_img->bind_param("i", $id_lugar);
+        $stmt_img->execute();
+        $result_img = $stmt_img->get_result();
+        $old_image = $result_img->fetch_assoc()['imagen'];
+        
+        // Generar nombre único
+        $extension = pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION);
+        $nombre_archivo = 'lugar_' . time() . '_' . uniqid() . '.' . $extension;
+        $ruta_destino = '../../uploads/' . $nombre_archivo;
+        
+        if(move_uploaded_file($_FILES['imagen']['tmp_name'], $ruta_destino)) {
+            // Eliminar imagen anterior si existe
+            if(!empty($old_image) && file_exists('../../uploads/' . $old_image)) {
+                unlink('../../uploads/' . $old_image);
+            }
+            
+            $updates[] = "imagen = ?";
+            $params[] = $nombre_archivo;
+            $types .= 's';
+        } else {
+            http_response_code(500);
+            echo json_encode(["success" => false, "message" => "Error al subir la imagen"]);
+            exit();
+        }
+    }
+    
+    if(empty($updates)) {
+        http_response_code(400);
+        echo json_encode(["success" => false, "message" => "No hay campos para actualizar"]);
+        exit();
+    }
+    
+    $params[] = $id_lugar;
+    $types .= 'i';
+    
+    $sql = "UPDATE lugares_turisticos SET " . implode(", ", $updates) . " WHERE id = ?";
+    $stmt = $conexion->prepare($sql);
+    
+    $bindParams = [];
+    $bindParams[] = &$types;
+    for ($i = 0; $i < count($params); $i++) {
+        $bindParams[] = &$params[$i];
+    }
+    call_user_func_array([$stmt, 'bind_param'], $bindParams);
+    
+    if($stmt->execute()) {
+        echo json_encode(["success" => true, "message" => "Lugar actualizado correctamente"]);
+    } else {
+        http_response_code(500);
+        echo json_encode(["success" => false, "message" => "Error al actualizar lugar"]);
+    }
+    exit();
+}
+
+// PUT: Editar lugar sin imagen (mantener compatibilidad)
 if($method === 'PUT') {
     $data = json_decode(file_get_contents("php://input"), true);
     
@@ -170,7 +294,6 @@ if($method === 'PUT') {
     $sql = "UPDATE lugares_turisticos SET " . implode(", ", $updates) . " WHERE id = ?";
     $stmt = $conexion->prepare($sql);
     
-    // Bind dynamic parameters securely
     $bindParams = [];
     $bindParams[] = &$types;
     for ($i = 0; $i < count($params); $i++) {
@@ -203,6 +326,14 @@ if($method === 'DELETE') {
     $conexion->begin_transaction();
     
     try {
+        // Obtener imagen para eliminarla
+        $sql_get_img = "SELECT imagen FROM lugares_turisticos WHERE id = ?";
+        $stmt_img = $conexion->prepare($sql_get_img);
+        $stmt_img->bind_param("i", $id_lugar);
+        $stmt_img->execute();
+        $result_img = $stmt_img->get_result();
+        $imagen = $result_img->fetch_assoc()['imagen'];
+        
         $sql_favoritos = "DELETE FROM favoritos WHERE id_lugar = ?";
         $stmt = $conexion->prepare($sql_favoritos);
         $stmt->bind_param("i", $id_lugar);
@@ -217,6 +348,11 @@ if($method === 'DELETE') {
         $stmt = $conexion->prepare($sql_lugar);
         $stmt->bind_param("i", $id_lugar);
         $stmt->execute();
+        
+        // Eliminar imagen física
+        if(!empty($imagen) && file_exists('../../uploads/' . $imagen)) {
+            unlink('../../uploads/' . $imagen);
+        }
         
         $conexion->commit();
         echo json_encode(["success" => true, "message" => "Lugar eliminado correctamente"]);

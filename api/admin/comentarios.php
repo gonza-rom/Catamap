@@ -11,6 +11,7 @@ if($method === 'GET') {
     $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 20;
     $offset = ($page - 1) * $limit;
     
+    // Filtro por estado
     $where_clause = !empty($estado_filter) ? "WHERE c.estado = ?" : "";
     
     // Contar total
@@ -36,14 +37,12 @@ if($method === 'GET') {
             ORDER BY c.fecha_creacion DESC
             LIMIT ? OFFSET ?";
     
+    $stmt = $conexion->prepare($sql);
     if(!empty($estado_filter)) {
-        $stmt = $conexion->prepare($sql);
         $stmt->bind_param("sii", $estado_filter, $limit, $offset);
     } else {
-        $stmt = $conexion->prepare($sql);
         $stmt->bind_param("ii", $limit, $offset);
     }
-    
     $stmt->execute();
     $result = $stmt->get_result();
     
@@ -84,6 +83,7 @@ if($method === 'PUT') {
     $id_comentario = intval($data['id']);
     $nuevo_estado = $data['estado'];
     
+    // Validar estados permitidos (deben coincidir con el ENUM de la BD)
     $estados_validos = ['aprobado', 'pendiente', 'rechazado'];
     if(!in_array($nuevo_estado, $estados_validos)) {
         http_response_code(400);
@@ -91,15 +91,32 @@ if($method === 'PUT') {
         exit();
     }
     
+    // Actualizar directamente el campo estado
     $sql = "UPDATE comentarios SET estado = ? WHERE id = ?";
     $stmt = $conexion->prepare($sql);
     $stmt->bind_param("si", $nuevo_estado, $id_comentario);
     
     if($stmt->execute()) {
-        echo json_encode(["success" => true, "message" => "Comentario actualizado correctamente"]);
+        if($stmt->affected_rows > 0) {
+            echo json_encode(["success" => true, "message" => "Comentario actualizado correctamente"]);
+        } else {
+            // Verificar si el comentario existe pero ya tenía ese estado
+            $check_sql = "SELECT estado FROM comentarios WHERE id = ?";
+            $check_stmt = $conexion->prepare($check_sql);
+            $check_stmt->bind_param("i", $id_comentario);
+            $check_stmt->execute();
+            $check_result = $check_stmt->get_result();
+            
+            if($check_result->num_rows > 0) {
+                echo json_encode(["success" => true, "message" => "El comentario ya tenía ese estado"]);
+            } else {
+                http_response_code(404);
+                echo json_encode(["success" => false, "message" => "Comentario no encontrado"]);
+            }
+        }
     } else {
         http_response_code(500);
-        echo json_encode(["success" => false, "message" => "Error al actualizar comentario"]);
+        echo json_encode(["success" => false, "message" => "Error al actualizar comentario: " . $stmt->error]);
     }
     exit();
 }
@@ -121,10 +138,15 @@ if($method === 'DELETE') {
     $stmt->bind_param("i", $id_comentario);
     
     if($stmt->execute()) {
-        echo json_encode(["success" => true, "message" => "Comentario eliminado correctamente"]);
+        if($stmt->affected_rows > 0) {
+            echo json_encode(["success" => true, "message" => "Comentario eliminado correctamente"]);
+        } else {
+            http_response_code(404);
+            echo json_encode(["success" => false, "message" => "Comentario no encontrado"]);
+        }
     } else {
         http_response_code(500);
-        echo json_encode(["success" => false, "message" => "Error al eliminar comentario"]);
+        echo json_encode(["success" => false, "message" => "Error al eliminar comentario: " . $stmt->error]);
     }
     exit();
 }

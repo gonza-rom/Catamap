@@ -17,13 +17,17 @@ if($method === 'GET') {
     
     $categorias = [];
     while($row = $result->fetch_assoc()) {
+        // Convertir el icono a UTF-8 si es necesario
+        if(!empty($row['icono'])) {
+            $row['icono'] = mb_convert_encoding($row['icono'], 'UTF-8', 'UTF-8');
+        }
         $categorias[] = $row;
     }
     
     echo json_encode([
         'success' => true,
         'data' => $categorias
-    ]);
+    ], JSON_UNESCAPED_UNICODE); // Importante para emojis
     exit();
 }
 

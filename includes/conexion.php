@@ -14,5 +14,5 @@ if ($conexion->connect_error) {
 }
 
 // Opcional: establecer charset
-$conexion->set_charset("utf8");
+$conexion->set_charset("utf8mb4");
 ?>

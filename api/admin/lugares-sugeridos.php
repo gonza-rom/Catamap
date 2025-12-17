@@ -7,11 +7,14 @@ ini_set('display_errors', 0);
 $method = $_SERVER['REQUEST_METHOD'];
 
 // GET: Listar lugares sugeridos pendientes
+// GET: Listar lugares sugeridos pendientes (CORREGIDO)
 if($method === 'GET') {
     $estado_filter = isset($_GET['estado']) ? $_GET['estado'] : 'pendiente';
     
     $sql = "SELECT ls.*, 
-            u.nombre as usuario_nombre, u.email as usuario_email,
+            u.nombre as usuario_nombre, 
+            u.email as usuario_email,
+            u.imagen_perfil as usuario_imagen,
             c.nombre as categoria_nombre,
             d.nombre as departamento_nombre
             FROM lugares_sugeridos ls
@@ -28,6 +31,12 @@ if($method === 'GET') {
     
     $sugerencias = [];
     while($row = $result->fetch_assoc()) {
+        // Asegurar que la ruta de imagen esté completa
+        if(!empty($row['imagen'])) {
+            $row['imagen_url'] = '../uploads/' . $row['imagen'];
+        } else {
+            $row['imagen_url'] = '../img/placeholder.webp';
+        }
         $sugerencias[] = $row;
     }
     
