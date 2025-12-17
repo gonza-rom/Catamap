@@ -43,7 +43,12 @@ if($method === 'GET') {
     $sql_count = "SELECT COUNT(*) as total FROM usuarios {$where_clause}";
     $stmt_count = $conexion->prepare($sql_count);
     if(!empty($params)) {
-        $stmt_count->bind_param($types, ...$params);
+        $bindParams = [];
+        $bindParams[] = &$types;
+        for ($i = 0; $i < count($params); $i++) {
+            $bindParams[] = &$params[$i];
+        }
+        call_user_func_array([$stmt_count, 'bind_param'], $bindParams);
     }
     $stmt_count->execute();
     $total_result = $stmt_count->get_result();
@@ -62,7 +67,12 @@ if($method === 'GET') {
     $types .= 'ii';
     
     $stmt = $conexion->prepare($sql);
-    $stmt->bind_param($types, ...$params);
+    $bindParams = [];
+    $bindParams[] = &$types;
+    for ($i = 0; $i < count($params); $i++) {
+        $bindParams[] = &$params[$i];
+    }
+    call_user_func_array([$stmt, 'bind_param'], $bindParams);
     $stmt->execute();
     $result = $stmt->get_result();
     
@@ -167,7 +177,18 @@ if($method === 'PUT') {
     
     $sql = "UPDATE usuarios SET " . implode(", ", $updates) . " WHERE id = ?";
     $stmt = $conexion->prepare($sql);
-    $stmt->bind_param($types, ...$params);
+
+    if(!$stmt) {
+        http_response_code(500);
+        echo json_encode(["success" => false, "message" => "Error de preparación SQL: " . $conexion->error]);
+        exit();
+    }
+    $bindParams = [];
+    $bindParams[] = &$types;
+    for ($i = 0; $i < count($params); $i++) {
+        $bindParams[] = &$params[$i];
+    }
+    call_user_func_array([$stmt, 'bind_param'], $bindParams);
     
     if($stmt->execute()) {
         echo json_encode(["success" => true, "message" => "Usuario actualizado correctamente"]);

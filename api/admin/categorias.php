@@ -103,13 +103,29 @@ if($method === 'PUT') {
     
     $sql = "UPDATE categorias SET " . implode(", ", $updates) . " WHERE id_categoria = ?";
     $stmt = $conexion->prepare($sql);
-    $stmt->bind_param($types, ...$params);
+    
+    if(!$stmt) {
+        http_response_code(500);
+        echo json_encode(["success" => false, "message" => "Error de preparación SQL: " . $conexion->error]);
+        exit();
+    }
+    
+    // Bind dynamic parameters securely
+    $bindParams = [];
+    $bindParams[] = &$types;
+    for ($i = 0; $i < count($params); $i++) {
+        $bindParams[] = &$params[$i];
+    }
+    call_user_func_array([$stmt, 'bind_param'], $bindParams);
     
     if($stmt->execute()) {
         echo json_encode(["success" => true, "message" => "Categoría actualizada correctamente"]);
     } else {
         http_response_code(500);
-        echo json_encode(["success" => false, "message" => "Error al actualizar categoría"]);
+        echo json_encode([
+            "success" => false, 
+            "message" => "Error al actualizar categoría: " . $stmt->error
+        ]);
     }
     exit();
 }

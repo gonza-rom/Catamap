@@ -320,33 +320,47 @@
         <div class="container pt-5 pb-3">
             <div class="text-center mb-3 pb-3">
                 <h6 class="text-primary text-uppercase" style="letter-spacing: 5px;">Servicios</h6>
-                <h1>Lo que ofrece Catamap</h1>
+                <h1>Todo lo que podés hacer en Catamap</h1>
             </div>
             <div class="row">
+
+                <!-- Mapa -->
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="service-item bg-white text-center mb-2 py-5 px-4">
-                        <i class="fa fa-2x fa-route mx-auto mb-4"></i>
-                        <h5 class="mb-2">Guía Turística Local</h5>
-                        <p class="m-0">Descubrí rutas, senderos y miradores con información actualizada de cada zona.</p>
+                        <i class="fa fa-2x fa-map-marked-alt mx-auto mb-4"></i>
+                        <h5 class="mb-2">Explorá Catamarca</h5>
+                        <p class="m-0">
+                            Descubrí lugares únicos y poco conocidos a través de un mapa interactivo creado por la comunidad.
+                        </p>
                     </div>
                 </div>
+
+                <!-- Red social -->
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="service-item bg-white text-center mb-2 py-5 px-4">
-                        <i class="fa fa-2x fa-ticket-alt mx-auto mb-4"></i>
-                        <h5 class="mb-2">Alojamientos y Gastronomía</h5>
-                        <p class="m-0">Encontrá hospedajes, restaurantes y emprendimientos locales recomendados.</p>
+                        <i class="fa fa-2x fa-users mx-auto mb-4"></i>
+                        <h5 class="mb-2">Conectá con Viajeros</h5>
+                        <p class="m-0">
+                            Seguidores, perfiles públicos y experiencias compartidas para inspirarte y planificar tu próxima aventura.
+                        </p>
                     </div>
                 </div>
+
+                <!-- Opiniones -->
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="service-item bg-white text-center mb-2 py-5 px-4">
-                        <i class="fa fa-2x fa-hotel mx-auto mb-4"></i>
-                        <h5 class="mb-2">Eventos y Cultura</h5>
-                        <p class="m-0">Accedé a ferias, festivales, fiestas patronales y experiencias únicas.</p>
+                        <i class="fa fa-2x fa-star mx-auto mb-4"></i>
+                        <h5 class="mb-2">Opiná y Guardá Favoritos</h5>
+                        <p class="m-0">
+                            Calificá lugares, dejá reseñas y guardá tus favoritos para no perderte ningún destino.
+                        </p>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
+
     <!-- Service End -->
     <!-- REGISTRO / UNITE A CATAMAP -->
     <div class="container-fluid bg-registration py-5" style="margin: 90px 0;">

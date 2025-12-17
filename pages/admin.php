@@ -309,9 +309,7 @@ if(!$admin_data) {
                 <div class="admin-card">
                     <div class="admin-card-header">
                         <h3 class="admin-card-title">Gestión de Departamentos</h3>
-                        <button class="btn-admin btn-admin-success" onclick="showCrearDepartamentoModal()">
-                            <i class="bi bi-plus-circle"></i> Nuevo Departamento
-                        </button>
+                        <!-- Botón eliminado por solicitud -->
                     </div>
 
                     <div id="departamentos-table-container">

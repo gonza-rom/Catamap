@@ -43,7 +43,12 @@ if($method === 'GET') {
     $sql_count = "SELECT COUNT(*) as total FROM lugares_turisticos lt {$where_clause}";
     $stmt_count = $conexion->prepare($sql_count);
     if(!empty($params)) {
-        $stmt_count->bind_param($types, ...$params);
+        $bindParams = [];
+        $bindParams[] = &$types;
+        for ($i = 0; $i < count($params); $i++) {
+            $bindParams[] = &$params[$i];
+        }
+        call_user_func_array([$stmt_count, 'bind_param'], $bindParams);
     }
     $stmt_count->execute();
     $total_result = $stmt_count->get_result();
@@ -68,7 +73,12 @@ if($method === 'GET') {
     $types .= 'ii';
     
     $stmt = $conexion->prepare($sql);
-    $stmt->bind_param($types, ...$params);
+    $bindParams = [];
+    $bindParams[] = &$types;
+    for ($i = 0; $i < count($params); $i++) {
+        $bindParams[] = &$params[$i];
+    }
+    call_user_func_array([$stmt, 'bind_param'], $bindParams);
     $stmt->execute();
     $result = $stmt->get_result();
     
@@ -159,7 +169,14 @@ if($method === 'PUT') {
     
     $sql = "UPDATE lugares_turisticos SET " . implode(", ", $updates) . " WHERE id = ?";
     $stmt = $conexion->prepare($sql);
-    $stmt->bind_param($types, ...$params);
+    
+    // Bind dynamic parameters securely
+    $bindParams = [];
+    $bindParams[] = &$types;
+    for ($i = 0; $i < count($params); $i++) {
+        $bindParams[] = &$params[$i];
+    }
+    call_user_func_array([$stmt, 'bind_param'], $bindParams);
     
     if($stmt->execute()) {
         echo json_encode(["success" => true, "message" => "Lugar actualizado correctamente"]);

@@ -387,6 +387,7 @@ function loadLugares(page = 1) {
         data: { busqueda, estado, page, limit: 20 },
         success: function (response) {
             if (response.success) {
+                saveLugaresState(response.data); // FIX: Save state for editing
                 renderLugaresTable(response.data, response.pagination);
             }
         },
@@ -394,6 +395,11 @@ function loadLugares(page = 1) {
             showError('Error al cargar lugares');
         }
     });
+}
+
+// Helper: Global state for lugares
+function saveLugaresState(lugares) {
+    window.currentLugares = lugares;
 }
 
 function renderLugaresTable(lugares, pagination) {
@@ -515,7 +521,7 @@ function renderSugerenciasTable(sugerencias) {
                 <td>${sug.usuario_nombre || '-'}</td>
                 <td>${sug.categoria_nombre || '-'}</td>
                 <td>${sug.departamento_nombre || '-'}</td>
-                <td>${formatDate(sug.fecha_sugerencia)}</td>
+                <td>${formatDate(sug.fecha_sugerido)}</td>
                 <td>
                     <button class="btn-admin btn-admin-sm btn-admin-success" onclick="aprobarSugerencia(${sug.id})">
                         <i class="bi bi-check-circle"></i> Aprobar
@@ -695,7 +701,7 @@ function eliminarComentario(id) {
     });
 }
 
-// ============ CATEGORÍAS ============
+// ============ CATEGORIAS ============
 function loadCategorias() {
     $.ajax({
         url: '../api/admin/categorias.php',
@@ -733,18 +739,23 @@ function renderCategoriasTable(categorias) {
     `;
 
     categorias.forEach(cat => {
+        // FIX: Handle id key
+        const catId = cat.id_categoria || cat.id;
+        // FIX: Render icon HTML
+        const iconDisplay = cat.icono ? `<i class="${cat.icono} mr-2"></i> ${cat.icono}` : '-';
+
         html += `
             <tr>
-                <td>${cat.id}</td>
+                <td>${catId}</td>
                 <td>${cat.nombre}</td>
                 <td>${cat.descripcion || '-'}</td>
-                <td>${cat.icono || '-'}</td>
+                <td>${iconDisplay}</td>
                 <td>${cat.total_lugares}</td>
                 <td>
-                    <button class="btn-admin btn-admin-sm btn-admin-primary" onclick="editarCategoria(${cat.id})">
+                    <button class="btn-admin btn-admin-sm btn-admin-primary" onclick="editarCategoria(${catId})">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="btn-admin btn-admin-sm btn-admin-danger" onclick="eliminarCategoria(${cat.id}, '${cat.nombre}', ${cat.total_lugares})">
+                    <button class="btn-admin btn-admin-sm btn-admin-danger" onclick="eliminarCategoria(${catId}, '${cat.nombre}', ${cat.total_lugares})">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>
@@ -791,6 +802,7 @@ function loadDepartamentos() {
         method: 'GET',
         success: function (response) {
             if (response.success) {
+                window.currentDepartamentos = response.data; // FIX: Save global state
                 renderDepartamentosTable(response.data);
             }
         },
@@ -928,7 +940,9 @@ function getEstadoBadgeClass(estado) {
 
 function formatDate(dateString) {
     if (!dateString) return '-';
+    // FIX: Handle dates that might be in different format or timezone
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString; // Fallback
     return date.toLocaleDateString('es-AR', {
         year: 'numeric',
         month: 'short',
@@ -949,9 +963,334 @@ function debounce(func, wait) {
 }
 
 function showSuccess(message) {
-    alert(message); // TODO: Replace with better notification system
+    alert(message);
 }
 
 function showError(message) {
-    alert('Error: ' + message); // TODO: Replace with better notification system
+    alert('Error: ' + message);
+}
+
+// ============ NEW MODAL FUNCTIONS ============
+
+// --- CATEGORIAS ---
+
+function showCrearCategoriaModal() {
+    const modalHTML = `
+        <div class="modal fade" id="crearCategoriaModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Nueva Categoría</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="crearCategoriaForm">
+                            <div class="form-group">
+                                <label>Nombre</label>
+                                <input type="text" class="form-control" id="new-cat-nombre" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Descripción</label>
+                                <textarea class="form-control" id="new-cat-descripcion"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Icono (Clase FontAwesome/Bootstrap)</label>
+                                <input type="text" class="form-control" id="new-cat-icono" placeholder="Ej: bi bi-tree">
+                                <small class="text-muted">Usa clases de Bootstrap Icons o FontAwesome</small>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" onclick="guardarNuevaCategoria()">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    $('body').append(modalHTML);
+    $('#crearCategoriaModal').modal('show');
+    $('#crearCategoriaModal').on('hidden.bs.modal', function () {
+        $(this).remove();
+    });
+}
+
+function guardarNuevaCategoria() {
+    const data = {
+        nombre: $('#new-cat-nombre').val(),
+        descripcion: $('#new-cat-descripcion').val(),
+        icono: $('#new-cat-icono').val()
+    };
+
+    if (!data.nombre) {
+        alert("El nombre es obligatorio");
+        return;
+    }
+
+    $.ajax({
+        url: '../api/admin/categorias.php',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function (response) {
+            if (response.success) {
+                $('#crearCategoriaModal').modal('hide');
+                showSuccess('Categoría creada');
+                loadCategorias();
+            } else {
+                showError(response.message);
+            }
+        },
+        error: function () {
+            showError('Error al crear categoría');
+        }
+    });
+}
+
+function editarCategoria(id) {
+    $.ajax({
+        url: '../api/admin/categorias.php',
+        method: 'GET',
+        success: function (response) {
+            if (response.success) {
+                const categoria = response.data.find(c => c.id_categoria == id || c.id == id);
+                if (categoria) {
+                    showEditarCategoriaModal(categoria);
+                } else {
+                    showError("Categoría no encontrada");
+                }
+            }
+        }
+    });
+}
+
+function showEditarCategoriaModal(cat) {
+    const catId = cat.id_categoria || cat.id;
+
+    const modalHTML = `
+        <div class="modal fade" id="editarCategoriaModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar Categoría</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editarCategoriaForm">
+                            <input type="hidden" id="edit-cat-id" value="${catId}">
+                            <div class="form-group">
+                                <label>Nombre</label>
+                                <input type="text" class="form-control" id="edit-cat-nombre" value="${cat.nombre}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Descripción</label>
+                                <textarea class="form-control" id="edit-cat-descripcion">${cat.descripcion || ''}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Icono</label>
+                                <input type="text" class="form-control" id="edit-cat-icono" value="${cat.icono || ''}">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" onclick="guardarCategoriaEditada()">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    $('body').append(modalHTML);
+    $('#editarCategoriaModal').modal('show');
+    $('#editarCategoriaModal').on('hidden.bs.modal', function () {
+        $(this).remove();
+    });
+}
+
+function guardarCategoriaEditada() {
+    const data = {
+        id: $('#edit-cat-id').val(),
+        nombre: $('#edit-cat-nombre').val(),
+        descripcion: $('#edit-cat-descripcion').val(),
+        icono: $('#edit-cat-icono').val()
+    };
+
+    $.ajax({
+        url: '../api/admin/categorias.php',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function (response) {
+            if (response.success) {
+                $('#editarCategoriaModal').modal('hide');
+                showSuccess('Categoría actualizada');
+                loadCategorias();
+            } else {
+                showError(response.message);
+            }
+        },
+        error: function (xhr) {
+            let msg = 'Error al actualizar categoría';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                msg += ': ' + xhr.responseJSON.message;
+            }
+            showError(msg);
+        }
+    });
+}
+
+// --- LUGARES ---
+
+function editarLugar(id) {
+    if (window.currentLugares) {
+        const l = window.currentLugares.find(x => x.id == id);
+        if (l) showEditarLugarModal(l);
+        else showError("Lugar no encontrado en memoria");
+    } else {
+        showError("Datos no cargados. Recarga la página.");
+    }
+}
+
+function showEditarLugarModal(lugar) {
+    const modalHTML = `
+        <div class="modal fade" id="editarLugarModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar Lugar: ${lugar.nombre}</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editarLugarForm">
+                            <input type="hidden" id="edit-lugar-id" value="${lugar.id}">
+                            <div class="form-group">
+                                <label>Estado</label>
+                                <select class="form-control" id="edit-lugar-estado">
+                                    <option value="aprobado" ${lugar.estado === 'aprobado' ? 'selected' : ''}>Aprobado</option>
+                                    <option value="pendiente" ${lugar.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                                    <option value="rechazado" ${lugar.estado === 'rechazado' ? 'selected' : ''}>Rechazado</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" onclick="guardarLugarEditado()">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    $('body').append(modalHTML);
+    $('#editarLugarModal').modal('show');
+    $('#editarLugarModal').on('hidden.bs.modal', function () {
+        $(this).remove();
+    });
+}
+
+function guardarLugarEditado() {
+    const data = {
+        id: $('#edit-lugar-id').val(),
+        estado: $('#edit-lugar-estado').val()
+    };
+
+    $.ajax({
+        url: '../api/admin/lugares.php',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function (response) {
+            $('#editarLugarModal').modal('hide');
+            if (response.success) {
+                showSuccess('Lugar actualizado');
+                loadLugares();
+            } else {
+                showError(response.message);
+            }
+        },
+        error: () => showError('Error al guardar')
+    });
+}
+
+// --- DEPARTAMENTOS ---
+
+function editarDepartamento(id) {
+    if (window.currentDepartamentos) {
+        const dep = window.currentDepartamentos.find(d => d.id == id);
+        if (dep) showEditarDepartamentoModal(dep);
+    } else {
+        $.ajax({
+            url: '../api/admin/departamentos.php', success: (res) => {
+                if (res.success) {
+                    const dep = res.data.find(d => d.id == id);
+                    if (dep) showEditarDepartamentoModal(dep);
+                }
+            }
+        });
+    }
+}
+
+function showEditarDepartamentoModal(dep) {
+    const modalHTML = `
+        <div class="modal fade" id="editarDepartamentoModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar Departamento</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editarDepartamentoForm">
+                            <input type="hidden" id="edit-dep-id" value="${dep.id}">
+                            <div class="form-group">
+                                <label>Nombre</label>
+                                <input type="text" class="form-control" id="edit-dep-nombre" value="${dep.nombre}" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" onclick="guardarDepartamentoEditado()">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    $('body').append(modalHTML);
+    $('#editarDepartamentoModal').modal('show');
+    $('#editarDepartamentoModal').on('hidden.bs.modal', function () {
+        $(this).remove();
+    });
+}
+
+function guardarDepartamentoEditado() {
+    const data = {
+        id: $('#edit-dep-id').val(),
+        nombre: $('#edit-dep-nombre').val()
+    };
+
+    $.ajax({
+        url: '../api/admin/departamentos.php',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function (response) {
+            $('#editarDepartamentoModal').modal('hide');
+            showSuccess('Departamento actualizado');
+            loadDepartamentos();
+        },
+        error: () => showError('Error al actualizar')
+    });
 }
