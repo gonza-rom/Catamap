@@ -50,9 +50,6 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#gallary">Destacados</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#book-table">Sumate al Equipo</a>
-                </li>
             </ul>
             <a class="navbar-brand m-auto" href="#">
                 <img src="img/CATAMAP.png" class="brand-img" alt="">
@@ -510,86 +507,119 @@
     <!-- FOOTER END -->
     <!-- Modal de Inicio de Sesión / Registro -->
     <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 shadow">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="modalTitle">Inicia sesión en tu cuenta</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <!-- Formulario de Inicio de Sesión -->
-                    <form id="loginForm">
-                        <div class="mb-3">
-                            <label for="loginEmail" class="form-label">Correo electrónico</label>
-                            <input type="email" class="form-control" id="loginEmail" placeholder="ejemplo@correo.com" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="loginPassword" class="form-label">Contraseña</label>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="modalTitle">Inicia sesión en tu cuenta</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Formulario de Inicio de Sesión -->
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label for="loginEmail" class="form-label">Correo electrónico</label>
+                        <input type="email" class="form-control" id="loginEmail" placeholder="ejemplo@correo.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="loginPassword" class="form-label">Contraseña</label>
+                        <div class="input-group">
                             <input type="password" class="form-control" id="loginPassword" placeholder="********" required>
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-white" type="button" id="toggleLoginPassword">
+                                    <i class="bi bi-eye" id="toggleLoginPasswordIcon"></i>
+                                </button>
+                            </div>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100" id="btnLogin">Iniciar Sesión</button>
-                    </form>
+                    </div>
+                    <div class="mb-3">
+                        <label for="captchaLogin" class="form-label">Verificación de seguridad</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text user-select-none" id="captchaQuestionLogin"></span>
+                            </div>
+                            <input type="number" class="form-control" id="captchaLogin" placeholder="Respuesta" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" id="btnLogin">Iniciar Sesión</button>
+                </form>
 
-                    <!-- Separador -->
-                    <div class="text-center mt-3 mb-2 text-muted">o continúa con</div>
-
+                <!-- Separador -->
+                <div class="text-center mt-3 mb-2 text-muted">o continúa con</div>
                     <!-- Botones sociales -->
-                    <div class="d-flex justify-content-center gap-2">
-                        <button class="btn btn-outline-dark w-50 mr-2">
+                    <div class="text-center mb-2">
+                        <span class="badge badge-info">Próximamente</span>
+                    </div>
+                    <div class="d-flex justify-content-center gap-2" style="opacity: 0.6;">
+                        <button class="btn btn-outline-dark w-50 mr-2" disabled>
                             <i class="bi bi-google"></i> Google
                         </button>
-                        <button class="btn btn-outline-dark w-50">
+                        <button class="btn btn-outline-dark w-50" disabled>
                             <i class="bi bi-facebook"></i> Facebook
                         </button>
                     </div>
 
                     <!-- Enlace para registrarse -->
-                    <div class="text-center mt-4">
-                        ¿No tienes una cuenta? 
-                        <a href="#" id="showRegister">Regístrate</a>
-                    </div>
-
-                    <!-- Formulario de Registro (oculto por defecto) -->
-                    <form id="registerForm" class="d-none mt-3">
-                        <div class="mb-3">
-                            <label for="registerName" class="form-label">Nombre completo</label>
-                            <input type="text" class="form-control" id="registerName" placeholder="Tu nombre" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="registerEmail" class="form-label">Correo electrónico</label>
-                            <input type="email" class="form-control" id="registerEmail" placeholder="ejemplo@correo.com" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="registerPassword" class="form-label">Contraseña</label>
-                            <input type="password" class="form-control" id="registerPassword" placeholder="Mínimo 6 caracteres" required minlength="6">
-                        </div>
-                        <div class="mb-3">
-                            <label for="registerConfirmPassword" class="form-label">Confirmar Contraseña</label>
-                            <input type="password" class="form-control" id="registerConfirmPassword" placeholder="Repite tu contraseña" required minlength="6">
-                        </div>
-                        <div class="mb-3">
-                            <label for="tipoUsuario" class="form-label">Tipo de Usuario</label>
-                            <select class="form-control" id="tipoUsuario" required>
-                                <option value="">Selecciona una opción</option>
-                                <option value="usuario">Usuario</option>
-                                <option value="emprendedor">Emprendedor</option>
-                            </select>
-                            <small class="form-text text-muted">
-                                <strong>Usuario:</strong> Explora emprendimientos<br>
-                                <strong>Emprendedor:</strong> Publica tus productos/servicios
-                            </small>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100" id="btnRegister">Crear Cuenta</button>
-                        <div class="text-center mt-3">
-                            ¿Ya tienes una cuenta? <a href="#" id="showLogin">Inicia sesión</a>
-                        </div>
-                    </form>
+                <div class="text-center mt-4">
+                    ¿No tienes una cuenta? 
+                    <a href="#" id="showRegister">Regístrate</a>
                 </div>
+
+                <!-- Formulario de Registro (oculto por defecto) -->
+                <form id="registerForm" class="d-none mt-3">
+                    <div class="mb-3">
+                        <label for="registerName" class="form-label">Nombre completo</label>
+                        <input type="text" class="form-control" id="registerName" placeholder="Tu nombre" required minlength="3">
+                        <small class="form-text text-muted">Mínimo 3 caracteres</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="registerEmail" class="form-label">Correo electrónico</label>
+                        <input type="email" class="form-control" id="registerEmail" placeholder="ejemplo@correo.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="registerPassword" class="form-label">Contraseña</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="registerPassword" placeholder="Crea una contraseña segura" required minlength="8">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-dark" type="button" id="toggleRegisterPassword">
+                                    <i class="bi bi-eye" id="toggleRegisterPasswordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">
+                            Mínimo 8 caracteres, incluir mayúsculas, minúsculas y números
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="registerConfirmPassword" class="form-label">Confirmar Contraseña</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="registerConfirmPassword" placeholder="Repite tu contraseña" required minlength="8">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-dark" type="button" id="toggleConfirmPassword">
+                                    <i class="bi bi-eye" id="toggleConfirmPasswordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="captchaRegister" class="form-label">Verificación de seguridad</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text user-select-none" id="captchaQuestionRegister"></span>
+                            </div>
+                            <input type="number" class="form-control" id="captchaRegister" placeholder="Respuesta" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100" id="btnRegister">Crear Cuenta</button>
+                    <div class="text-center mt-3">
+                        ¿Ya tienes una cuenta? <a href="#" id="showLogin">Inicia sesión</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+</div>
     <!-- Back to Top -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="fa fa-angle-double-up"></i></a>
     <!-- MODAL GALERÍA -->
@@ -626,7 +656,7 @@
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/inicio-sesion.js"></script>
+    <script src="js/inicio-sesion.js?v=<?php echo time(); ?>"></script>
     <script>
     document.querySelectorAll('.gallary-overlay').forEach(item => {
         item.addEventListener('click', function (e) {
@@ -641,6 +671,5 @@
         });
     });
 </script>
-
 </body>
 </html>

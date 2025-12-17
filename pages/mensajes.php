@@ -102,6 +102,8 @@ $chat_con = isset($_GET['chat']) ? intval($_GET['chat']) : 0;
             overflow-y: auto;
             padding: 20px;
             background: #f1f3f5;
+            display: flex;
+            flex-direction: column;
         }
         .mensaje {
             max-width: 60%;
@@ -177,15 +179,19 @@ $chat_con = isset($_GET['chat']) ? intval($_GET['chat']) : 0;
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let conversacionActual = <?php echo $chat_con; ?>;
+        let nombreUrl = "<?php echo isset($_GET['name']) ? htmlspecialchars($_GET['name']) : ''; ?>";
+        let avatarUrlParam = "<?php echo isset($_GET['avatar']) ? htmlspecialchars($_GET['avatar']) : ''; ?>";
         let intervaloActualizacion;
+        let usuarioActualInfo = { nombre: '', avatar: '' };
 
         $(document).ready(function() {
             cargarConversaciones();
             
             if(conversacionActual > 0) {
-                setTimeout(() => {
-                    abrirChat(conversacionActual);
-                }, 500);
+                // Si tenemos datos por URL, abrimos el chat directamente
+                if(nombreUrl && nombreUrl !== '') {
+                    abrirChat(conversacionActual, nombreUrl, avatarUrlParam);
+                }
             }
         });
 
@@ -197,24 +203,31 @@ $chat_con = isset($_GET['chat']) ? intval($_GET['chat']) : 0;
                     if(data.conversaciones.length === 0) {
                         html = '<div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size: 3rem;"></i><p class="mt-3">No tienes mensajes</p></div>';
                     } else {
-                        data.conversaciones.forEach(conv => {
-                            const avatar = conv.imagen_perfil ? 
-                                `../uploads/${conv.imagen_perfil}` : 
-                                `https://ui-avatars.com/api/?name=${encodeURIComponent(conv.nombre)}&size=50&background=667eea&color=fff`;
+                        data.conversaciones.forEach(function(conv) {
+                            var avatar = conv.imagen_perfil ? 
+                                '../uploads/' + conv.imagen_perfil : 
+                                'https://ui-avatars.com/api/?name=' + encodeURIComponent(conv.nombre) + '&size=50&background=667eea&color=fff';
                             
-                            html += `
-                                <div class="conversacion-item ${conv.id_otro_usuario == conversacionActual ? 'active' : ''}" 
-                                     onclick="abrirChat(${conv.id_otro_usuario})">
-                                    <img src="${avatar}" class="conversacion-avatar">
-                                    <div style="flex: 1;">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <strong>${conv.nombre}</strong>
-                                            ${conv.no_leidos > 0 ? `<span class="badge-no-leidos">${conv.no_leidos}</span>` : ''}
-                                        </div>
-                                        <small class="text-muted text-truncate d-block">${conv.ultimo_mensaje}</small>
-                                    </div>
-                                </div>
-                            `;
+                            var nombreSafe = conv.nombre.replace(/'/g, "\\'");
+                            var avatarSafe = conv.imagen_perfil || '';
+                            var activeClass = (conv.id_otro_usuario == conversacionActual) ? 'active' : '';
+                            var badge = conv.no_leidos > 0 ? '<span class="badge-no-leidos">' + conv.no_leidos + '</span>' : '';
+                            
+                            html += '<div class="conversacion-item ' + activeClass + '" ' +
+                                     'onclick="abrirChat(' + conv.id_otro_usuario + ', \'' + nombreSafe + '\', \'' + avatarSafe + '\')">' +
+                                    '<img src="' + avatar + '" class="conversacion-avatar">' +
+                                    '<div style="flex: 1;">' +
+                                        '<div class="d-flex justify-content-between align-items-start">' +
+                                            '<strong>' + conv.nombre + '</strong>' +
+                                            badge +
+                                        '</div>' +
+                                        '<small class="text-muted text-truncate d-block">' + conv.ultimo_mensaje + '</small>' +
+                                    '</div>' +
+                                '</div>';
+                            
+                            if(conv.id_otro_usuario == conversacionActual && !usuarioActualInfo.nombre) {
+                                abrirChat(conv.id_otro_usuario, conv.nombre, conv.imagen_perfil);
+                            }
                         });
                     }
                     
@@ -223,108 +236,98 @@ $chat_con = isset($_GET['chat']) ? intval($_GET['chat']) : 0;
             });
         }
 
-        function abrirChat(idUsuario) {
+        function abrirChat(idUsuario, nombre, avatar) {
             conversacionActual = idUsuario;
+            usuarioActualInfo = { nombre: nombre, avatar: avatar };
             
-            // Detener actualización anterior
             if(intervaloActualizacion) {
                 clearInterval(intervaloActualizacion);
             }
             
-            // Marcar conversación como activa
             $('.conversacion-item').removeClass('active');
             $('.conversacion-item').each(function() {
-                if($(this).attr('onclick').includes(idUsuario)) {
+                if($(this).attr('onclick') && $(this).attr('onclick').includes(idUsuario)) {
                     $(this).addClass('active');
                 }
             });
             
-            // Cargar mensajes
+            var avatarUrl = avatar ? '../uploads/' + avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(nombre) + '&size=50&background=667eea&color=fff';
+            
+            var layoutHtml = 
+                '<div class="chat-header">' +
+                    '<div class="d-flex align-items-center">' +
+                        '<img src="' + avatarUrl + '" class="conversacion-avatar mr-3">' +
+                        '<div>' +
+                            '<h5 class="mb-0">' + nombre + '</h5>' +
+                            '<small class="text-muted">' +
+                                '<a href="perfil-publico.php?user=' + idUsuario + '" target="_blank">Ver perfil</a>' +
+                            '</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="mensajes-contenedor" id="mensajesContenedor">' +
+                    '<div class="text-center py-5">' +
+                        '<div class="spinner-border text-primary" role="status"></div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="mensaje-input-area">' +
+                    '<form onsubmit="enviarMensaje(event, ' + idUsuario + ')">' +
+                        '<div class="input-group">' +
+                            '<input type="text" class="form-control" id="mensajeInput" placeholder="Escribe un mensaje..." required autocomplete="off">' +
+                            '<div class="input-group-append">' +
+                                '<button class="btn btn-primary" type="submit">' +
+                                    '<i class="bi bi-send"></i> Enviar' +
+                                '</button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</form>' +
+                '</div>';
+            
+            $('#chatArea').html(layoutHtml);
+            
             cargarMensajes(idUsuario);
             
-            // Actualizar cada 3 segundos
-            intervaloActualizacion = setInterval(() => {
+            intervaloActualizacion = setInterval(function() {
                 cargarMensajes(idUsuario, false);
             }, 3000);
         }
 
-        function cargarMensajes(idUsuario, scrollToBottom = true) {
-            $.get(`../api/mensajes.php?conversacion_con=${idUsuario}`, function(data) {
+        function cargarMensajes(idUsuario, scrollToBottom) {
+            if (scrollToBottom === undefined) scrollToBottom = true;
+            
+            $.get('../api/mensajes.php?conversacion_con=' + idUsuario, function(data) {
                 if(data.success) {
-                    const otroUsuario = data.mensajes[0];
-                    const nombre = otroUsuario ? (otroUsuario.es_mio ? otroUsuario.destinatario_nombre : otroUsuario.remitente_nombre) : 'Usuario';
-                    const avatar = otroUsuario ? (otroUsuario.es_mio ? '' : otroUsuario.remitente_imagen) : '';
-                    
-                    let html = `
-                        <div class="chat-header">
-                            <div class="d-flex align-items-center">
-                                ${avatar ? `<img src="../uploads/${avatar}" class="conversacion-avatar mr-3">` : ''}
-                                <div>
-                                    <h5 class="mb-0">${nombre}</h5>
-                                    <small class="text-muted">
-                                        <a href="perfil-publico.php?user=${idUsuario}" target="_blank">Ver perfil</a>
-                                    </small>
-                                </div>
-                            </div>
-                            <div>
-                                <button class="btn btn-secondary btn-sm" onclick="window.location.href='perfil.php'">
-                                    <i class="bi bi-arrow-left"></i> Volver
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mensajes-contenedor" id="mensajesContenedor">
-                    `;
+                    let html = '';
                     
                     if(data.mensajes.length === 0) {
-                        html += '<div class="text-center py-5 text-muted"><i class="bi bi-chat" style="font-size: 3rem;"></i><p class="mt-3">No hay mensajes aún. ¡Envía el primero!</p></div>';
+                        html = '<div class="text-center py-5 text-muted"><i class="bi bi-chat" style="font-size: 3rem;"></i><p class="mt-3">No hay mensajes aún. ¡Envía el primero!</p></div>';
                     } else {
-                        data.mensajes.forEach(msg => {
-                            const fecha = new Date(msg.fecha_envio);
-                            const fechaStr = fecha.toLocaleString('es-AR', { 
+                        data.mensajes.forEach(function(msg) {
+                            var fecha = new Date(msg.fecha_envio);
+                             var fechaStr = fecha.toLocaleString('es-AR', { 
                                 day: '2-digit', 
                                 month: '2-digit', 
                                 hour: '2-digit', 
                                 minute: '2-digit' 
                             });
                             
-                            html += `
-                                <div class="mensaje ${msg.es_mio ? 'propio' : ''}">
-                                    <div class="mensaje-bubble">${msg.mensaje}</div>
-                                    <div class="mensaje-fecha">${fechaStr}</div>
-                                </div>
-                            `;
+                            var clasePropio = msg.es_mio ? 'propio' : '';
+                            
+                            html += '<div class="mensaje ' + clasePropio + '">' +
+                                    '<div class="mensaje-bubble">' + msg.mensaje + '</div>' +
+                                    '<div class="mensaje-fecha">' + fechaStr + '</div>' +
+                                    '</div>';
                         });
                     }
                     
-                    html += `
-                        </div>
-                        <div class="mensaje-input-area">
-                            <form onsubmit="enviarMensaje(event, ${idUsuario})">
-                                <div class="input-group">
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="mensajeInput" 
-                                           placeholder="Escribe un mensaje..." 
-                                           required 
-                                           autocomplete="off">
-                                    <div class="input-group-append">
-                                        <button class="btn btn-primary" type="submit">
-                                            <i class="bi bi-send"></i> Enviar
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    `;
+                    var contenedor = $('#mensajesContenedor');
+                    var isScrolledToBottom = contenedor[0].scrollHeight - contenedor.scrollTop() <= contenedor.outerHeight() + 50;
                     
-                    $('#chatArea').html(html);
+                    contenedor.html(html);
                     
-                    if(scrollToBottom) {
-                        $('#mensajesContenedor').scrollTop($('#mensajesContenedor')[0].scrollHeight);
+                    if(scrollToBottom || isScrolledToBottom) {
+                        contenedor.scrollTop(contenedor[0].scrollHeight);
                     }
-                    
-                    // Actualizar lista de conversaciones
-                    cargarConversaciones();
                 }
             });
         }
@@ -332,9 +335,13 @@ $chat_con = isset($_GET['chat']) ? intval($_GET['chat']) : 0;
         function enviarMensaje(event, idDestinatario) {
             event.preventDefault();
             
-            const mensaje = $('#mensajeInput').val().trim();
+            var input = $('#mensajeInput');
+            var mensaje = input.val().trim();
             
             if(!mensaje) return;
+            
+            input.val('');
+            input.focus();
             
             $.ajax({
                 url: '../api/mensajes.php',
@@ -346,9 +353,16 @@ $chat_con = isset($_GET['chat']) ? intval($_GET['chat']) : 0;
                 }),
                 success: function(data) {
                     if(data.success) {
-                        $('#mensajeInput').val('');
-                        cargarMensajes(idDestinatario);
+                        cargarMensajes(idDestinatario, true);
+                        cargarConversaciones();
+                    } else {
+                        alert('Error al enviar mensaje');
+                        input.val(mensaje);
                     }
+                },
+                error: function() {
+                     alert('Error de conexión');
+                     input.val(mensaje);
                 }
             });
         }

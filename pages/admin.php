@@ -125,7 +125,7 @@ if(!$admin_data) {
                 <h1>Panel de Administración</h1>
                 <div class="admin-user-info">
                     <span><?php echo htmlspecialchars($admin_data['nombre']); ?></span>
-                    <img src="<?php echo $admin_data['imagen_perfil'] ?? '../img/default-avatar.png'; ?>" 
+                    <img src="<?php echo !empty($admin_data['imagen_perfil']) ? '../uploads/' . $admin_data['imagen_perfil'] : '../img/default-avatar.png'; ?>" 
                          alt="Avatar" class="admin-user-avatar">
                 </div>
             </header>

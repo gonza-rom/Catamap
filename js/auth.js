@@ -1,38 +1,38 @@
 // Configuración de la API
-const API_URL = 'api';
+const API_URL = '/catamap/api';
 
 // Objeto para manejar autenticación
 const Auth = {
     // Guardar datos de usuario en localStorage
-    guardarUsuario: function(userData) {
+    guardarUsuario: function (userData) {
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('token', userData.token);
     },
 
     // Obtener datos de usuario
-    obtenerUsuario: function() {
+    obtenerUsuario: function () {
         const user = localStorage.getItem('user');
         return user ? JSON.parse(user) : null;
     },
 
     // Obtener token
-    obtenerToken: function() {
+    obtenerToken: function () {
         return localStorage.getItem('token');
     },
 
     // Verificar si está autenticado
-    estaAutenticado: function() {
+    estaAutenticado: function () {
         return this.obtenerToken() !== null;
     },
 
     // Limpiar datos de sesión
-    limpiarSesion: function() {
+    limpiarSesion: function () {
         localStorage.removeItem('user');
         localStorage.removeItem('token');
     },
 
     // Registro de usuario
-    registrar: async function(nombre, email, password, tipoUsuario) {
+    registrar: async function (nombre, email, password, tipoUsuario) {
         try {
             const response = await fetch(`${API_URL}/register.php`, {
                 method: 'POST',
@@ -61,7 +61,7 @@ const Auth = {
     },
 
     // Login de usuario
-    login: async function(email, password) {
+    login: async function (email, password) {
         try {
             const response = await fetch(`${API_URL}/login.php`, {
                 method: 'POST',
@@ -89,10 +89,10 @@ const Auth = {
     },
 
     // Logout de usuario
-    logout: async function() {
+    logout: async function () {
         try {
             const token = this.obtenerToken();
-            
+
             await fetch(`${API_URL}/logout.php`, {
                 method: 'POST',
                 headers: {
@@ -113,7 +113,7 @@ const Auth = {
     },
 
     // Redirigir si no está autenticado
-    requiereLogin: function() {
+    requiereLogin: function () {
         if (!this.estaAutenticado()) {
             window.location.href = '/login.html';
             return false;
@@ -122,7 +122,7 @@ const Auth = {
     },
 
     // Redirigir si está autenticado
-    requiereNoLogin: function() {
+    requiereNoLogin: function () {
         if (this.estaAutenticado()) {
             window.location.href = '/index.html';
             return false;
@@ -131,13 +131,13 @@ const Auth = {
     },
 
     // Obtener tipo de usuario
-    obtenerTipoUsuario: function() {
+    obtenerTipoUsuario: function () {
         const user = this.obtenerUsuario();
         return user ? user.tipo_usuario : null;
     },
 
     // Verificar tipo de usuario
-    esTipoUsuario: function(tipos) {
+    esTipoUsuario: function (tipos) {
         const tipoActual = this.obtenerTipoUsuario();
         if (Array.isArray(tipos)) {
             return tipos.includes(tipoActual);
@@ -165,9 +165,9 @@ function mostrarMensaje(mensaje, tipo = 'info') {
             </svg>
         </span>
     `;
-    
+
     document.body.appendChild(div);
-    
+
     setTimeout(() => {
         div.remove();
     }, 5000);

@@ -506,7 +506,7 @@ $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeho
             
             // Mostrar loading
             Swal.fire({
-                title: 'Publicando opinión...',
+                title: 'Enviando opinión...',
                 html: 'Por favor espera un momento',
                 allowOutsideClick: false,
                 allowEscapeKey: false,
@@ -531,17 +531,39 @@ $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeho
                 const data = await response.json();
                 
                 if(data.success) {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: '¡Opinión publicada!',
-                        text: 'Gracias por compartir tu experiencia',
-                        confirmButtonColor: '#E07B39',
-                        timer: 2000,
-                        timerProgressBar: true
-                    });
+                    if(data.pending) {
+                        // Comentario pendiente de aprobación
+                        await Swal.fire({
+                            icon: 'info',
+                            title: '¡Comentario Enviado!',
+                            html: '<p>Tu comentario ha sido enviado correctamente.</p>' +
+                                '<p><strong>Está pendiente de aprobación</strong> por un administrador.</p>' +
+                                '<p class="text-muted" style="font-size: 0.9em; margin-top: 10px;">Será visible una vez que sea revisado y aprobado.</p>',
+                            confirmButtonColor: '#E07B39',
+                            confirmButtonText: 'Entendido'
+                        });
+                    } else {
+                        // Comentario aprobado automáticamente (por si cambias la lógica después)
+                        await Swal.fire({
+                            icon: 'success',
+                            title: '¡Opinión publicada!',
+                            text: 'Gracias por compartir tu experiencia',
+                            confirmButtonColor: '#E07B39',
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+                    }
                     
-                    // Recargar la página para mostrar el nuevo comentario
-                    window.location.reload();
+                    // Limpiar formulario
+                    $('#comentario').val('');
+                    calificacionSeleccionada = 0;
+                    $('.star').removeClass('active');
+                    
+                    // Recargar la página después de 1 segundo
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                    
                 } else {
                     Swal.fire({
                         icon: 'error',

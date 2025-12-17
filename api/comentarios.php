@@ -164,9 +164,9 @@ if($method === 'POST') {
     $result = $stmt->get_result();
     
     if($result->num_rows > 0) {
-        // Actualizar comentario existente
+        // Actualizar comentario existente - quedará PENDIENTE de nuevo
         $sql_update = "UPDATE comentarios 
-                       SET calificacion = ?, comentario = ?, estado = 'aprobado', fecha_modificacion = NOW()
+                       SET calificacion = ?, comentario = ?, estado = 'pendiente', fecha_modificacion = NOW()
                        WHERE id_usuario = ? AND id_lugar = ?";
         $stmt = $conexion->prepare($sql_update);
         
@@ -181,7 +181,8 @@ if($method === 'POST') {
         if($stmt->execute()) {
             echo json_encode(array(
                 "success" => true,
-                "message" => "¡Tu opinión ha sido actualizada correctamente!"
+                "pending" => true,
+                "message" => "Tu comentario ha sido enviado y está pendiente de aprobación por un administrador"
             ));
         } else {
             http_response_code(500);
@@ -191,9 +192,9 @@ if($method === 'POST') {
             ));
         }
     } else {
-        // Insertar nuevo comentario (AUTO-APROBADO)
+        // Insertar nuevo comentario - estado PENDIENTE
         $sql_insert = "INSERT INTO comentarios (id_lugar, id_usuario, calificacion, comentario, estado) 
-                       VALUES (?, ?, ?, ?, 'aprobado')";
+                       VALUES (?, ?, ?, ?, 'pendiente')";
         $stmt = $conexion->prepare($sql_insert);
         
         if($stmt === false) {
@@ -230,7 +231,8 @@ if($method === 'POST') {
             
             echo json_encode(array(
                 "success" => true,
-                "message" => "¡Tu opinión ha sido publicada correctamente!",
+                "pending" => true,
+                "message" => "Tu comentario ha sido enviado y está pendiente de aprobación por un administrador",
                 "id" => $stmt->insert_id
             ));
         } else {

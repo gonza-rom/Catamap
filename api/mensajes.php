@@ -79,6 +79,19 @@ if($method === 'GET') {
             'success' => true,
             'mensajes' => $mensajes
         ]);
+    } else if(isset($_GET['count'])) {
+        // Obtener solo conteo de no leídos
+        $sql = "SELECT COUNT(*) as total FROM mensajes WHERE id_destinatario = ? AND leido = 0";
+        $stmt = $conexion->prepare($sql);
+        $stmt->bind_param("i", $id_usuario);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        
+        echo json_encode([
+            'success' => true,
+            'total_no_leidos' => intval($row['total'])
+        ]);
     } else {
         // Obtener lista de conversaciones
         $sql = "SELECT DISTINCT

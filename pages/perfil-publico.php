@@ -280,7 +280,7 @@ while($row = $result_insignias->fetch_assoc()) {
                             <i class="bi <?php echo $siguiendo ? 'bi-check-circle' : 'bi-plus-circle'; ?>"></i>
                             <?php echo $siguiendo ? 'Siguiendo' : 'Seguir'; ?>
                         </button>
-                        <button class="btn btn-primary" onclick="window.location.href='mensajes.php?chat=<?php echo $id_usuario_perfil; ?>'">
+                        <button class="btn btn-primary" onclick="window.location.href='mensajes.php?chat=<?php echo $id_usuario_perfil; ?>&name=<?php echo urlencode($usuario_perfil['nombre']); ?>&avatar=<?php echo urlencode($usuario_perfil['imagen_perfil'] ?? ''); ?>'">
                             <i class="bi bi-chat-dots"></i> Enviar Mensaje
                         </button>
                     </div>

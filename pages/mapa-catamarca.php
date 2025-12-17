@@ -252,7 +252,7 @@ if($usuario_logueado) {
     </div>
   <?php else: ?>
     <div class="user-menu">
-      <a href="../index.php" class="btn btn-primary btn-sm">
+      <a class="btn btn-primary btn-sm" data-toggle="modal" data-target="#loginModal">
         <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
       </a>
     </div>
@@ -348,6 +348,7 @@ if($usuario_logueado) {
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <!-- Variables globales primero -->
 <script>
@@ -357,7 +358,8 @@ if($usuario_logueado) {
 </script>
 
 <!-- Luego los scripts de la aplicación -->
-<script src="../assets/js/auth.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/inicio-sesion.js?v=<?php echo time(); ?>"></script>
 <script src="../js/favoritos.js"></script>
 <script src="../js/mapa-catamarca.js"></script>
 <script src="../js/sidebar-categorias.js"></script>
@@ -370,15 +372,26 @@ if($usuario_logueado) {
       $('#btnLogoutMapa').click(async function(e) {
         e.preventDefault();
         
-        if(!confirm('¿Cerrar sesión?')) return;
-        
-        try {
-          await Auth.logout();
-          window.location.href = '../index.php';
-        } catch (error) {
-          console.error('Error:', error);
-          window.location.href = '../index.php';
-        }
+          const result = await Swal.fire({
+            title: '¿Cerrar sesión?',
+            text: "¿Estás seguro de que quieres salir?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#E07B39',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, cerrar sesión',
+            cancelButtonText: 'Cancelar'
+          });
+
+          if (result.isConfirmed) {
+            try {
+              await Auth.logout();
+              window.location.href = '../index.php';
+            } catch (error) {
+              console.error('Error:', error);
+              window.location.href = '../index.php';
+            }
+          }
       });
 
       // Panel de favoritos
@@ -387,8 +400,17 @@ if($usuario_logueado) {
         if(usuarioLogueado) {
           $('#favoritosPanel').toggleClass('open');
         } else {
-          alert('Debes iniciar sesión para ver tus favoritos');
-          window.location.href = '../index.php';
+          Swal.fire({
+            icon: 'warning',
+            title: 'Acceso restringido',
+            text: 'Debes iniciar sesión para ver tus favoritos',
+            confirmButtonColor: '#E07B39',
+            confirmButtonText: 'Iniciar Sesión'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.location.href = '../index.php';
+            }
+          });
         }
       });
 
@@ -431,5 +453,122 @@ if($usuario_logueado) {
   });
 </script>
 </script>
+</script>
+<!-- Modal de Inicio de Sesión / Registro -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true" style="z-index: 99999;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="modalTitle">Inicia sesión en tu cuenta</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Formulario de Inicio de Sesión -->
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="loginEmail" class="form-label">Correo electrónico</label>
+                            <input type="email" class="form-control" id="loginEmail" placeholder="ejemplo@correo.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">Contraseña</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="loginPassword" placeholder="********" required>
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-dark" type="button" id="toggleLoginPassword">
+                                        <i class="bi bi-eye" id="toggleLoginPasswordIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="captchaLogin" class="form-label">Verificación de seguridad</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text user-select-none" id="captchaQuestionLogin"></span>
+                                </div>
+                                <input type="number" class="form-control" id="captchaLogin" placeholder="Respuesta" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" id="btnLogin">Iniciar Sesión</button>
+                    </form>
+
+                    <!-- Separador -->
+                    <div class="text-center mt-3 mb-2 text-muted">o continúa con</div>
+
+                    <!-- Botones sociales -->
+                    <div class="text-center mb-2">
+                        <span class="badge badge-info">Próximamente</span>
+                    </div>
+                    <div class="d-flex justify-content-center gap-2" style="opacity: 0.6;">
+                        <button class="btn btn-outline-dark w-50 mr-2" disabled>
+                            <i class="bi bi-google"></i> Google
+                        </button>
+                        <button class="btn btn-outline-dark w-50" disabled>
+                            <i class="bi bi-facebook"></i> Facebook
+                        </button>
+                    </div>
+
+                    <!-- Enlace para registrarse -->
+                    <div class="text-center mt-4">
+                        ¿No tienes una cuenta? 
+                        <a href="#" id="showRegister">Regístrate</a>
+                    </div>
+
+                    <!-- Formulario de Registro (oculto por defecto) -->
+                    <form id="registerForm" class="d-none mt-3">
+                        <div class="mb-3">
+                            <label for="registerName" class="form-label">Nombre completo</label>
+                            <input type="text" class="form-control" id="registerName" placeholder="Tu nombre" required minlength="3">
+                            <small class="form-text text-muted">Mínimo 3 caracteres</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerEmail" class="form-label">Correo electrónico</label>
+                            <input type="email" class="form-control" id="registerEmail" placeholder="ejemplo@correo.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerPassword" class="form-label">Contraseña</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="registerPassword" placeholder="Crea una contraseña segura" required minlength="8">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-dark" type="button" id="toggleRegisterPassword">
+                                        <i class="bi bi-eye" id="toggleRegisterPasswordIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">
+                                Mínimo 8 caracteres, incluir mayúsculas, minúsculas y números
+                            </small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerConfirmPassword" class="form-label">Confirmar Contraseña</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="registerConfirmPassword" placeholder="Repite tu contraseña" required minlength="8">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-dark" type="button" id="toggleConfirmPassword">
+                                        <i class="bi bi-eye" id="toggleConfirmPasswordIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="captchaRegister" class="form-label">Verificación de seguridad</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text user-select-none" id="captchaQuestionRegister"></span>
+                                </div>
+                                <input type="number" class="form-control" id="captchaRegister" placeholder="Respuesta" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100" id="btnRegister">Crear Cuenta</button>
+                        <div class="text-center mt-3">
+                            ¿Ya tienes una cuenta? <a href="#" id="showLogin">Inicia sesión</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
