@@ -1,4 +1,4 @@
-// Admin Panel JavaScript
+// Admin Panel JavaScript - VERSIÓN MEJORADA CON SWEETALERT2
 $(document).ready(function () {
     // Navigation
     $('.admin-nav-item[data-section]').click(function (e) {
@@ -53,6 +53,52 @@ function loadSectionData(section) {
     }
 }
 
+// ============ SWEETALERT2 UTILITIES ============
+function showSuccess(title, text = '') {
+    Swal.fire({
+        icon: 'success',
+        title: title,
+        text: text,
+        timer: 2000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+    });
+}
+
+function showError(title, text = '') {
+    Swal.fire({
+        icon: 'error',
+        title: title,
+        text: text,
+        confirmButtonColor: '#dc3545'
+    });
+}
+
+function showConfirm(title, text, confirmText = 'Sí, continuar') {
+    return Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: confirmText,
+        cancelButtonText: 'Cancelar'
+    });
+}
+
+function showLoading(text = 'Procesando...') {
+    Swal.fire({
+        title: text,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+}
+
 // ============ DASHBOARD ============
 function loadDashboard() {
     $.ajax({
@@ -66,7 +112,7 @@ function loadDashboard() {
             }
         },
         error: function () {
-            showError('Error al cargar estadísticas');
+            showError('Error', 'No se pudieron cargar las estadísticas');
         }
     });
 }
@@ -196,7 +242,7 @@ function loadUsuarios(page = 1) {
             }
         },
         error: function () {
-            showError('Error al cargar usuarios');
+            showError('Error', 'No se pudieron cargar los usuarios');
         }
     });
 }
@@ -251,7 +297,6 @@ function renderUsuariosTable(usuarios, pagination) {
 }
 
 function editarUsuario(id) {
-    // Get user data
     $.ajax({
         url: '../api/admin/usuarios.php',
         method: 'GET',
@@ -334,44 +379,58 @@ function guardarUsuario() {
         estado: $('#edit-user-estado').val()
     };
 
+    showLoading('Guardando cambios...');
+
     $.ajax({
         url: '../api/admin/usuarios.php',
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function (response) {
+            Swal.close();
             if (response.success) {
                 $('#editarUsuarioModal').modal('hide');
-                showSuccess('Usuario actualizado correctamente');
+                showSuccess('¡Actualizado!', 'Usuario actualizado correctamente');
                 loadUsuarios();
             } else {
-                showError(response.message);
+                showError('Error', response.message || 'No se pudo actualizar');
             }
         },
         error: function () {
-            showError('Error al actualizar usuario');
+            Swal.close();
+            showError('Error', 'Error al actualizar usuario');
         }
     });
 }
 
 function eliminarUsuario(id, nombre) {
-    if (!confirm(`¿Estás seguro de eliminar al usuario "${nombre}"?`)) return;
-
-    $.ajax({
-        url: '../api/admin/usuarios.php',
-        method: 'DELETE',
-        contentType: 'application/json',
-        data: JSON.stringify({ id }),
-        success: function (response) {
-            if (response.success) {
-                showSuccess('Usuario eliminado correctamente');
-                loadUsuarios();
-            } else {
-                showError(response.message);
-            }
-        },
-        error: function () {
-            showError('Error al eliminar usuario');
+    showConfirm(
+        '¿Eliminar usuario?',
+        `¿Estás seguro de eliminar a "${nombre}"? Esta acción no se puede deshacer.`,
+        'Sí, eliminar'
+    ).then((result) => {
+        if (result.isConfirmed) {
+            showLoading('Eliminando usuario...');
+            
+            $.ajax({
+                url: '../api/admin/usuarios.php',
+                method: 'DELETE',
+                contentType: 'application/json',
+                data: JSON.stringify({ id }),
+                success: function (response) {
+                    Swal.close();
+                    if (response.success) {
+                        showSuccess('¡Eliminado!', 'Usuario eliminado correctamente');
+                        loadUsuarios();
+                    } else {
+                        showError('Error', response.message || 'No se pudo eliminar');
+                    }
+                },
+                error: function () {
+                    Swal.close();
+                    showError('Error', 'Error al eliminar usuario');
+                }
+            });
         }
     });
 }
@@ -387,17 +446,16 @@ function loadLugares(page = 1) {
         data: { busqueda, estado, page, limit: 20 },
         success: function (response) {
             if (response.success) {
-                saveLugaresState(response.data); // FIX: Save state for editing
+                saveLugaresState(response.data);
                 renderLugaresTable(response.data, response.pagination);
             }
         },
         error: function () {
-            showError('Error al cargar lugares');
+            showError('Error', 'No se pudieron cargar los lugares');
         }
     });
 }
 
-// Helper: Global state for lugares
 function saveLugaresState(lugares) {
     window.currentLugares = lugares;
 }
@@ -429,7 +487,7 @@ function renderLugaresTable(lugares, pagination) {
         html += `
             <tr>
                 <td>${lugar.id}</td>
-                <td>${lugar.nombre}</td>
+                <td><strong>${lugar.nombre}</strong></td>
                 <td>${lugar.categoria_nombre || '-'}</td>
                 <td>${lugar.departamento_nombre || '-'}</td>
                 <td><span class="badge badge-${getEstadoBadgeClass(lugar.estado)}">${lugar.estado}</span></td>
@@ -453,707 +511,13 @@ function renderLugaresTable(lugares, pagination) {
     $('#lugares-table-container').html(html);
 }
 
-function eliminarLugar(id, nombre) {
-    if (!confirm(`¿Estás seguro de eliminar "${nombre}"? Esto también eliminará todos los favoritos y comentarios relacionados.`)) return;
-
-    $.ajax({
-        url: '../api/admin/lugares.php',
-        method: 'DELETE',
-        contentType: 'application/json',
-        data: JSON.stringify({ id }),
-        success: function (response) {
-            if (response.success) {
-                showSuccess('Lugar eliminado correctamente');
-                loadLugares();
-            } else {
-                showError(response.message);
-            }
-        },
-        error: function () {
-            showError('Error al eliminar lugar');
-        }
-    });
-}
-
-// ============ SUGERENCIAS ============
-function loadSugerencias() {
-    $.ajax({
-        url: '../api/admin/lugares-sugeridos.php',
-        method: 'GET',
-        success: function (response) {
-            if (response.success) {
-                renderSugerenciasTable(response.data);
-            }
-        },
-        error: function () {
-            showError('Error al cargar sugerencias');
-        }
-    });
-}
-
-function renderSugerenciasTable(sugerencias) {
-    if (sugerencias.length === 0) {
-        $('#sugerencias-table-container').html('<p class="text-muted">No hay sugerencias pendientes</p>');
-        return;
-    }
-
-    let html = `
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Usuario</th>
-                    <th>Categoría</th>
-                    <th>Departamento</th>
-                    <th>Fecha</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    sugerencias.forEach(sug => {
-        html += `
-            <tr>
-                <td>${sug.id}</td>
-                <td>${sug.nombre}</td>
-                <td>${sug.usuario_nombre || '-'}</td>
-                <td>${sug.categoria_nombre || '-'}</td>
-                <td>${sug.departamento_nombre || '-'}</td>
-                <td>${formatDate(sug.fecha_sugerido)}</td>
-                <td>
-                    <button class="btn-admin btn-admin-sm btn-admin-success" onclick="aprobarSugerencia(${sug.id})">
-                        <i class="bi bi-check-circle"></i> Aprobar
-                    </button>
-                    <button class="btn-admin btn-admin-sm btn-admin-danger" onclick="rechazarSugerencia(${sug.id})">
-                        <i class="bi bi-x-circle"></i> Rechazar
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-
-    html += '</tbody></table>';
-
-    $('#sugerencias-table-container').html(html);
-}
-
-function aprobarSugerencia(id) {
-    if (!confirm('¿Aprobar esta sugerencia y convertirla en lugar turístico?')) return;
-
-    $.ajax({
-        url: '../api/admin/lugares-sugeridos.php',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({ id }),
-        success: function (response) {
-            if (response.success) {
-                showSuccess('Sugerencia aprobada correctamente');
-                loadSugerencias();
-                loadDashboard(); // Refresh stats
-            } else {
-                showError(response.message);
-            }
-        },
-        error: function () {
-            showError('Error al aprobar sugerencia');
-        }
-    });
-}
-
-function rechazarSugerencia(id) {
-    if (!confirm('¿Rechazar esta sugerencia?')) return;
-
-    $.ajax({
-        url: '../api/admin/lugares-sugeridos.php',
-        method: 'DELETE',
-        contentType: 'application/json',
-        data: JSON.stringify({ id, rechazar: true }),
-        success: function (response) {
-            if (response.success) {
-                showSuccess('Sugerencia rechazada');
-                loadSugerencias();
-            } else {
-                showError(response.message);
-            }
-        },
-        error: function () {
-            showError('Error al rechazar sugerencia');
-        }
-    });
-}
-
-// ============ COMENTARIOS ============
-function loadComentarios(page = 1) {
-    const estado = $('#filter-comentario-estado').val();
-
-    $.ajax({
-        url: '../api/admin/comentarios.php',
-        method: 'GET',
-        data: { estado, page, limit: 20 },
-        success: function (response) {
-            if (response.success) {
-                renderComentariosTable(response.data, response.pagination);
-            }
-        },
-        error: function () {
-            showError('Error al cargar comentarios');
-        }
-    });
-}
-
-function renderComentariosTable(comentarios, pagination) {
-    if (comentarios.length === 0) {
-        $('#comentarios-table-container').html('<p class="text-muted">No se encontraron comentarios</p>');
-        return;
-    }
-
-    let html = `
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Usuario</th>
-                    <th>Lugar</th>
-                    <th>Comentario</th>
-                    <th>Estado</th>
-                    <th>Fecha</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    comentarios.forEach(com => {
-        html += `
-            <tr>
-                <td>${com.id}</td>
-                <td>${com.usuario_nombre || '-'}</td>
-                <td>${com.lugar_nombre || '-'}</td>
-                <td>${com.comentario.substring(0, 50)}...</td>
-                <td><span class="badge badge-${getEstadoBadgeClass(com.estado)}">${com.estado}</span></td>
-                <td>${formatDate(com.fecha_creacion)}</td>
-                <td>
-                    ${com.estado !== 'aprobado' ? `
-                        <button class="btn-admin btn-admin-sm btn-admin-success" onclick="cambiarEstadoComentario(${com.id}, 'aprobado')">
-                            <i class="bi bi-check"></i>
-                        </button>
-                    ` : ''}
-                    ${com.estado !== 'rechazado' ? `
-                        <button class="btn-admin btn-admin-sm btn-admin-warning" onclick="cambiarEstadoComentario(${com.id}, 'rechazado')">
-                            <i class="bi bi-x"></i>
-                        </button>
-                    ` : ''}
-                    <button class="btn-admin btn-admin-sm btn-admin-danger" onclick="eliminarComentario(${com.id})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-
-    html += '</tbody></table>';
-    html += renderPagination(pagination, 'loadComentarios');
-
-    $('#comentarios-table-container').html(html);
-}
-
-function cambiarEstadoComentario(id, estado) {
-    $.ajax({
-        url: '../api/admin/comentarios.php',
-        method: 'PUT',
-        contentType: 'application/json',
-        data: JSON.stringify({ id, estado }),
-        success: function (response) {
-            if (response.success) {
-                showSuccess('Comentario actualizado');
-                loadComentarios();
-            } else {
-                showError(response.message);
-            }
-        },
-        error: function () {
-            showError('Error al actualizar comentario');
-        }
-    });
-}
-
-function eliminarComentario(id) {
-    if (!confirm('¿Eliminar este comentario?')) return;
-
-    $.ajax({
-        url: '../api/admin/comentarios.php',
-        method: 'DELETE',
-        contentType: 'application/json',
-        data: JSON.stringify({ id }),
-        success: function (response) {
-            if (response.success) {
-                showSuccess('Comentario eliminado');
-                loadComentarios();
-            } else {
-                showError(response.message);
-            }
-        },
-        error: function () {
-            showError('Error al eliminar comentario');
-        }
-    });
-}
-
-// ============ CATEGORIAS ============
-function loadCategorias() {
-    $.ajax({
-        url: '../api/admin/categorias.php',
-        method: 'GET',
-        success: function (response) {
-            if (response.success) {
-                renderCategoriasTable(response.data);
-            }
-        },
-        error: function () {
-            showError('Error al cargar categorías');
-        }
-    });
-}
-
-function renderCategoriasTable(categorias) {
-    if (categorias.length === 0) {
-        $('#categorias-table-container').html('<p class="text-muted">No hay categorías</p>');
-        return;
-    }
-
-    let html = `
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Descripción</th>
-                    <th>Icono</th>
-                    <th>Lugares</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    categorias.forEach(cat => {
-        // FIX: Handle id key
-        const catId = cat.id_categoria || cat.id;
-        // FIX: Render icon HTML
-        const iconDisplay = cat.icono ? `<i class="${cat.icono} mr-2"></i> ${cat.icono}` : '-';
-
-        html += `
-            <tr>
-                <td>${catId}</td>
-                <td>${cat.nombre}</td>
-                <td>${cat.descripcion || '-'}</td>
-                <td>${iconDisplay}</td>
-                <td>${cat.total_lugares}</td>
-                <td>
-                    <button class="btn-admin btn-admin-sm btn-admin-primary" onclick="editarCategoria(${catId})">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn-admin btn-admin-sm btn-admin-danger" onclick="eliminarCategoria(${catId}, '${cat.nombre}', ${cat.total_lugares})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-
-    html += '</tbody></table>';
-
-    $('#categorias-table-container').html(html);
-}
-
-function eliminarCategoria(id, nombre, totalLugares) {
-    if (totalLugares > 0) {
-        alert(`No se puede eliminar "${nombre}" porque tiene ${totalLugares} lugares asociados.`);
-        return;
-    }
-
-    if (!confirm(`¿Eliminar la categoría "${nombre}"?`)) return;
-
-    $.ajax({
-        url: '../api/admin/categorias.php',
-        method: 'DELETE',
-        contentType: 'application/json',
-        data: JSON.stringify({ id }),
-        success: function (response) {
-            if (response.success) {
-                showSuccess('Categoría eliminada');
-                loadCategorias();
-            } else {
-                showError(response.message);
-            }
-        },
-        error: function () {
-            showError('Error al eliminar categoría');
-        }
-    });
-}
-
-// ============ DEPARTAMENTOS ============
-function loadDepartamentos() {
-    $.ajax({
-        url: '../api/admin/departamentos.php',
-        method: 'GET',
-        success: function (response) {
-            if (response.success) {
-                window.currentDepartamentos = response.data; // FIX: Save global state
-                renderDepartamentosTable(response.data);
-            }
-        },
-        error: function () {
-            showError('Error al cargar departamentos');
-        }
-    });
-}
-
-function renderDepartamentosTable(departamentos) {
-    if (departamentos.length === 0) {
-        $('#departamentos-table-container').html('<p class="text-muted">No hay departamentos</p>');
-        return;
-    }
-
-    let html = `
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Lugares</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    departamentos.forEach(dep => {
-        html += `
-            <tr>
-                <td>${dep.id}</td>
-                <td>${dep.nombre}</td>
-                <td>${dep.total_lugares}</td>
-                <td>
-                    <button class="btn-admin btn-admin-sm btn-admin-primary" onclick="editarDepartamento(${dep.id})">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn-admin btn-admin-sm btn-admin-danger" onclick="eliminarDepartamento(${dep.id}, '${dep.nombre}', ${dep.total_lugares})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-
-    html += '</tbody></table>';
-
-    $('#departamentos-table-container').html(html);
-}
-
-function eliminarDepartamento(id, nombre, totalLugares) {
-    if (totalLugares > 0) {
-        alert(`No se puede eliminar "${nombre}" porque tiene ${totalLugares} lugares asociados.`);
-        return;
-    }
-
-    if (!confirm(`¿Eliminar el departamento "${nombre}"?`)) return;
-
-    $.ajax({
-        url: '../api/admin/departamentos.php',
-        method: 'DELETE',
-        contentType: 'application/json',
-        data: JSON.stringify({ id }),
-        success: function (response) {
-            if (response.success) {
-                showSuccess('Departamento eliminado');
-                loadDepartamentos();
-            } else {
-                showError(response.message);
-            }
-        },
-        error: function () {
-            showError('Error al eliminar departamento');
-        }
-    });
-}
-
-// ============ REFRESH FUNCTIONS ============
-function refreshUsuarios() { loadUsuarios(); }
-function refreshLugares() { loadLugares(); }
-function refreshSugerencias() { loadSugerencias(); }
-function refreshComentarios() { loadComentarios(); }
-
-// ============ UTILITY FUNCTIONS ============
-function renderPagination(pagination, loadFunction) {
-    if (pagination.total_pages <= 1) return '';
-
-    let html = '<div class="admin-pagination">';
-
-    // Previous button
-    html += `<button ${pagination.page === 1 ? 'disabled' : ''} onclick="${loadFunction}(${pagination.page - 1})">
-        <i class="bi bi-chevron-left"></i>
-    </button>`;
-
-    // Page numbers
-    for (let i = 1; i <= pagination.total_pages; i++) {
-        if (i === pagination.page) {
-            html += `<button class="active">${i}</button>`;
-        } else if (i === 1 || i === pagination.total_pages || Math.abs(i - pagination.page) <= 2) {
-            html += `<button onclick="${loadFunction}(${i})">${i}</button>`;
-        } else if (i === pagination.page - 3 || i === pagination.page + 3) {
-            html += `<button disabled>...</button>`;
-        }
-    }
-
-    // Next button
-    html += `<button ${pagination.page === pagination.total_pages ? 'disabled' : ''} onclick="${loadFunction}(${pagination.page + 1})">
-        <i class="bi bi-chevron-right"></i>
-    </button>`;
-
-    html += '</div>';
-    return html;
-}
-
-function getRolBadgeClass(rol) {
-    switch (rol) {
-        case 'admin': return 'danger';
-        case 'emprendedor': return 'primary';
-        default: return 'info';
-    }
-}
-
-function getEstadoBadgeClass(estado) {
-    switch (estado) {
-        case 'activo':
-        case 'aprobado': return 'success';
-        case 'pendiente': return 'warning';
-        case 'suspendido':
-        case 'rechazado':
-        case 'inactivo': return 'danger';
-        default: return 'info';
-    }
-}
-
-function formatDate(dateString) {
-    if (!dateString) return '-';
-    // FIX: Handle dates that might be in different format or timezone
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString; // Fallback
-    return date.toLocaleDateString('es-AR', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-function showSuccess(message) {
-    alert(message);
-}
-
-function showError(message) {
-    alert('Error: ' + message);
-}
-
-// ============ NEW MODAL FUNCTIONS ============
-
-// --- CATEGORIAS ---
-
-function showCrearCategoriaModal() {
-    const modalHTML = `
-        <div class="modal fade" id="crearCategoriaModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Nueva Categoría</h5>
-                        <button type="button" class="close" data-dismiss="modal">
-                            <span>&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="crearCategoriaForm">
-                            <div class="form-group">
-                                <label>Nombre</label>
-                                <input type="text" class="form-control" id="new-cat-nombre" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Descripción</label>
-                                <textarea class="form-control" id="new-cat-descripcion"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Icono (Clase FontAwesome/Bootstrap)</label>
-                                <input type="text" class="form-control" id="new-cat-icono" placeholder="Ej: bi bi-tree">
-                                <small class="text-muted">Usa clases de Bootstrap Icons o FontAwesome</small>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-primary" onclick="guardarNuevaCategoria()">Guardar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    $('body').append(modalHTML);
-    $('#crearCategoriaModal').modal('show');
-    $('#crearCategoriaModal').on('hidden.bs.modal', function () {
-        $(this).remove();
-    });
-}
-
-function guardarNuevaCategoria() {
-    const data = {
-        nombre: $('#new-cat-nombre').val(),
-        descripcion: $('#new-cat-descripcion').val(),
-        icono: $('#new-cat-icono').val()
-    };
-
-    if (!data.nombre) {
-        alert("El nombre es obligatorio");
-        return;
-    }
-
-    $.ajax({
-        url: '../api/admin/categorias.php',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(data),
-        success: function (response) {
-            if (response.success) {
-                $('#crearCategoriaModal').modal('hide');
-                showSuccess('Categoría creada');
-                loadCategorias();
-            } else {
-                showError(response.message);
-            }
-        },
-        error: function () {
-            showError('Error al crear categoría');
-        }
-    });
-}
-
-function editarCategoria(id) {
-    $.ajax({
-        url: '../api/admin/categorias.php',
-        method: 'GET',
-        success: function (response) {
-            if (response.success) {
-                const categoria = response.data.find(c => c.id_categoria == id || c.id == id);
-                if (categoria) {
-                    showEditarCategoriaModal(categoria);
-                } else {
-                    showError("Categoría no encontrada");
-                }
-            }
-        }
-    });
-}
-
-function showEditarCategoriaModal(cat) {
-    const catId = cat.id_categoria || cat.id;
-
-    const modalHTML = `
-        <div class="modal fade" id="editarCategoriaModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Editar Categoría</h5>
-                        <button type="button" class="close" data-dismiss="modal">
-                            <span>&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="editarCategoriaForm">
-                            <input type="hidden" id="edit-cat-id" value="${catId}">
-                            <div class="form-group">
-                                <label>Nombre</label>
-                                <input type="text" class="form-control" id="edit-cat-nombre" value="${cat.nombre}" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Descripción</label>
-                                <textarea class="form-control" id="edit-cat-descripcion">${cat.descripcion || ''}</textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Icono</label>
-                                <input type="text" class="form-control" id="edit-cat-icono" value="${cat.icono || ''}">
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-primary" onclick="guardarCategoriaEditada()">Guardar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    $('body').append(modalHTML);
-    $('#editarCategoriaModal').modal('show');
-    $('#editarCategoriaModal').on('hidden.bs.modal', function () {
-        $(this).remove();
-    });
-}
-
-function guardarCategoriaEditada() {
-    const data = {
-        id: $('#edit-cat-id').val(),
-        nombre: $('#edit-cat-nombre').val(),
-        descripcion: $('#edit-cat-descripcion').val(),
-        icono: $('#edit-cat-icono').val()
-    };
-
-    $.ajax({
-        url: '../api/admin/categorias.php',
-        method: 'PUT',
-        contentType: 'application/json',
-        data: JSON.stringify(data),
-        success: function (response) {
-            if (response.success) {
-                $('#editarCategoriaModal').modal('hide');
-                showSuccess('Categoría actualizada');
-                loadCategorias();
-            } else {
-                showError(response.message);
-            }
-        },
-        error: function (xhr) {
-            let msg = 'Error al actualizar categoría';
-            if (xhr.responseJSON && xhr.responseJSON.message) {
-                msg += ': ' + xhr.responseJSON.message;
-            }
-            showError(msg);
-        }
-    });
-}
-
-// --- LUGARES ---
-
 function editarLugar(id) {
     if (window.currentLugares) {
         const l = window.currentLugares.find(x => x.id == id);
         if (l) showEditarLugarModal(l);
-        else showError("Lugar no encontrado en memoria");
+        else showError('Error', 'Lugar no encontrado en memoria');
     } else {
-        showError("Datos no cargados. Recarga la página.");
+        showError('Error', 'Datos no cargados. Recarga la página.');
     }
 }
 
@@ -1163,7 +527,7 @@ function showEditarLugarModal(lugar) {
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Editar Lugar: ${lugar.nombre}</h5>
+                        <h5 class="modal-title">Editar: ${lugar.nombre}</h5>
                         <button type="button" class="close" data-dismiss="modal">
                             <span>&times;</span>
                         </button>
@@ -1203,25 +567,709 @@ function guardarLugarEditado() {
         estado: $('#edit-lugar-estado').val()
     };
 
+    showLoading('Guardando cambios...');
+
     $.ajax({
         url: '../api/admin/lugares.php',
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function (response) {
+            Swal.close();
             $('#editarLugarModal').modal('hide');
             if (response.success) {
-                showSuccess('Lugar actualizado');
+                showSuccess('¡Actualizado!', 'Lugar actualizado correctamente');
                 loadLugares();
             } else {
-                showError(response.message);
+                showError('Error', response.message || 'No se pudo actualizar');
             }
         },
-        error: () => showError('Error al guardar')
+        error: () => {
+            Swal.close();
+            showError('Error', 'Error al guardar');
+        }
     });
 }
 
-// --- DEPARTAMENTOS ---
+function eliminarLugar(id, nombre) {
+    showConfirm(
+        '¿Eliminar lugar?',
+        `¿Estás seguro de eliminar "${nombre}"? Esto también eliminará todos los favoritos y comentarios relacionados.`,
+        'Sí, eliminar'
+    ).then((result) => {
+        if (result.isConfirmed) {
+            showLoading('Eliminando lugar...');
+            
+            $.ajax({
+                url: '../api/admin/lugares.php',
+                method: 'DELETE',
+                contentType: 'application/json',
+                data: JSON.stringify({ id }),
+                success: function (response) {
+                    Swal.close();
+                    if (response.success) {
+                        showSuccess('¡Eliminado!', 'Lugar eliminado correctamente');
+                        loadLugares();
+                    } else {
+                        showError('Error', response.message || 'No se pudo eliminar');
+                    }
+                },
+                error: function () {
+                    Swal.close();
+                    showError('Error', 'Error al eliminar lugar');
+                }
+            });
+        }
+    });
+}
+
+// ============ SUGERENCIAS ============
+function loadSugerencias() {
+    $.ajax({
+        url: '../api/admin/lugares-sugeridos.php',
+        method: 'GET',
+        success: function (response) {
+            if (response.success) {
+                renderSugerenciasTable(response.data);
+            }
+        },
+        error: function () {
+            showError('Error', 'No se pudieron cargar las sugerencias');
+        }
+    });
+}
+
+function renderSugerenciasTable(sugerencias) {
+    if (sugerencias.length === 0) {
+        $('#sugerencias-table-container').html('<p class="text-muted">No hay sugerencias pendientes</p>');
+        return;
+    }
+
+    let html = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Usuario</th>
+                    <th>Categoría</th>
+                    <th>Departamento</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    sugerencias.forEach(sug => {
+        html += `
+            <tr>
+                <td>${sug.id}</td>
+                <td><strong>${sug.nombre}</strong></td>
+                <td>${sug.usuario_nombre || '-'}</td>
+                <td>${sug.categoria_nombre || '-'}</td>
+                <td>${sug.departamento_nombre || '-'}</td>
+                <td>${formatDate(sug.fecha_sugerido)}</td>
+                <td>
+                    <button class="btn-admin btn-admin-sm btn-admin-success" onclick="aprobarSugerencia(${sug.id})">
+                        <i class="bi bi-check-circle"></i> Aprobar
+                    </button>
+                    <button class="btn-admin btn-admin-sm btn-admin-danger" onclick="rechazarSugerencia(${sug.id})">
+                        <i class="bi bi-x-circle"></i> Rechazar
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+
+    $('#sugerencias-table-container').html(html);
+}
+
+function aprobarSugerencia(id) {
+    showConfirm(
+        '¿Aprobar sugerencia?',
+        'Esta sugerencia será convertida en lugar turístico público',
+        'Sí, aprobar'
+    ).then((result) => {
+        if (result.isConfirmed) {
+            showLoading('Aprobando sugerencia...');
+            
+            $.ajax({
+                url: '../api/admin/lugares-sugeridos.php',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ id }),
+                success: function (response) {
+                    Swal.close();
+                    if (response.success) {
+                        showSuccess('¡Aprobado!', 'Sugerencia aprobada y publicada');
+                        loadSugerencias();
+                        loadDashboard();
+                    } else {
+                        showError('Error', response.message || 'No se pudo aprobar');
+                    }
+                },
+                error: function () {
+                    Swal.close();
+                    showError('Error', 'Error al aprobar sugerencia');
+                }
+            });
+        }
+    });
+}
+
+function rechazarSugerencia(id) {
+    showConfirm(
+        '¿Rechazar sugerencia?',
+        'La sugerencia será marcada como rechazada',
+        'Sí, rechazar'
+    ).then((result) => {
+        if (result.isConfirmed) {
+            showLoading('Rechazando sugerencia...');
+            
+            $.ajax({
+                url: '../api/admin/lugares-sugeridos.php',
+                method: 'DELETE',
+                contentType: 'application/json',
+                data: JSON.stringify({ id, rechazar: true }),
+                success: function (response) {
+                    Swal.close();
+                    if (response.success) {
+                        showSuccess('Rechazado', 'Sugerencia rechazada');
+                        loadSugerencias();
+                    } else {
+                        showError('Error', response.message || 'No se pudo rechazar');
+                    }
+                },
+                error: function () {
+                    Swal.close();
+                    showError('Error', 'Error al rechazar sugerencia');
+                }
+            });
+        }
+    });
+}
+
+// ============ COMENTARIOS ============
+function loadComentarios(page = 1) {
+    const estado = $('#filter-comentario-estado').val();
+
+    $.ajax({
+        url: '../api/admin/comentarios.php',
+        method: 'GET',
+        data: { estado, page, limit: 20 },
+        success: function (response) {
+            if (response.success) {
+                renderComentariosTable(response.data, response.pagination);
+            }
+        },
+        error: function () {
+            showError('Error', 'No se pudieron cargar los comentarios');
+        }
+    });
+}
+
+function renderComentariosTable(comentarios, pagination) {
+    if (comentarios.length === 0) {
+        $('#comentarios-table-container').html('<p class="text-muted">No se encontraron comentarios</p>');
+        return;
+    }
+
+    let html = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Lugar</th>
+                    <th>Comentario</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    comentarios.forEach(com => {
+        html += `
+            <tr>
+                <td>${com.id}</td>
+                <td>${com.usuario_nombre || '-'}</td>
+                <td><strong>${com.lugar_nombre || '-'}</strong></td>
+                <td>${com.comentario.substring(0, 50)}...</td>
+                <td><span class="badge badge-${getEstadoBadgeClass(com.estado)}">${com.estado}</span></td>
+                <td>${formatDate(com.fecha_creacion)}</td>
+                <td>
+                    ${com.estado !== 'aprobado' ? `
+                        <button class="btn-admin btn-admin-sm btn-admin-success" onclick="cambiarEstadoComentario(${com.id}, 'aprobado')">
+                            <i class="bi bi-check"></i>
+                        </button>
+                    ` : ''}
+                    ${com.estado !== 'rechazado' ? `
+                        <button class="btn-admin btn-admin-sm btn-admin-warning" onclick="cambiarEstadoComentario(${com.id}, 'rechazado')">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    ` : ''}
+                    <button class="btn-admin btn-admin-sm btn-admin-danger" onclick="eliminarComentario(${com.id})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+    html += renderPagination(pagination, 'loadComentarios');
+
+    $('#comentarios-table-container').html(html);
+}
+
+
+function cambiarEstadoComentario(id, estado) {
+    showLoading('Actualizando comentario...');
+    
+    $.ajax({
+        url: '../api/admin/comentarios.php',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({ id, estado }),
+        success: function (response) {
+            Swal.close();
+            if (response.success) {
+                showSuccess('¡Actualizado!', 'Comentario actualizado');
+                loadComentarios();
+            } else {
+                showError('Error', response.message || 'No se pudo actualizar');
+            }
+        },
+        error: function () {
+            Swal.close();
+            showError('Error', 'Error al actualizar comentario');
+        }
+    });
+}
+
+function eliminarComentario(id) {
+    showConfirm(
+        '¿Eliminar comentario?',
+        'Esta acción no se puede deshacer',
+        'Sí, eliminar'
+    ).then((result) => {
+        if (result.isConfirmed) {
+            showLoading('Eliminando comentario...');
+            
+            $.ajax({
+                url: '../api/admin/comentarios.php',
+                method: 'DELETE',
+                contentType: 'application/json',
+                data: JSON.stringify({ id }),
+                success: function (response) {
+                    Swal.close();
+                    if (response.success) {
+                        showSuccess('¡Eliminado!', 'Comentario eliminado');
+                        loadComentarios();
+                    } else {
+                        showError('Error', response.message || 'No se pudo eliminar');
+                    }
+                },
+                error: function () {
+                    Swal.close();
+                    showError('Error', 'Error al eliminar comentario');
+                }
+            });
+        }
+    });
+}
+
+// ============ CATEGORÍAS ============
+function loadCategorias() {
+    $.ajax({
+        url: '../api/admin/categorias.php',
+        method: 'GET',
+        success: function (response) {
+            if (response.success) {
+                renderCategoriasTable(response.data);
+            }
+        },
+        error: function () {
+            showError('Error', 'No se pudieron cargar las categorías');
+        }
+    });
+}
+
+function renderCategoriasTable(categorias) {
+    if (categorias.length === 0) {
+        $('#categorias-table-container').html('<p class="text-muted">No hay categorías</p>');
+        return;
+    }
+
+    let html = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Icono</th>
+                    <th>Lugares</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    categorias.forEach(cat => {
+        const catId = cat.id_categoria || cat.id;
+        const iconDisplay = cat.icono ? `<i class="${cat.icono}" style="font-size: 1.5rem; color: #667eea;"></i>` : '-';
+        
+        html += `
+            <tr>
+                <td>${catId}</td>
+                <td><strong>${cat.nombre}</strong></td>
+                <td>${cat.descripcion || '-'}</td>
+                <td>${iconDisplay}</td>
+                <td>${cat.total_lugares}</td>
+                <td>
+                    <button class="btn-admin btn-admin-sm btn-admin-primary" onclick="editarCategoria(${catId})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn-admin btn-admin-sm btn-admin-danger" onclick="eliminarCategoria(${catId}, '${cat.nombre}', ${cat.total_lugares})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+
+    $('#categorias-table-container').html(html);
+}
+
+function showCrearCategoriaModal() {
+    const modalHTML = `
+        <div class="modal fade" id="crearCategoriaModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Nueva Categoría</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="crearCategoriaForm">
+                            <div class="form-group">
+                                <label><i class="bi bi-tag"></i> Nombre *</label>
+                                <input type="text" class="form-control" id="new-cat-nombre" required placeholder="Ej: Monumentos Históricos">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="bi bi-file-text"></i> Descripción</label>
+                                <textarea class="form-control" id="new-cat-descripcion" rows="3" placeholder="Descripción de la categoría (opcional)"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="bi bi-palette"></i> Icono (Clase Bootstrap Icons)</label>
+                                <input type="text" class="form-control" id="new-cat-icono" placeholder="Ej: bi bi-tree">
+                                <small class="text-muted">Usa clases de Bootstrap Icons como: bi bi-tree, bi bi-mountain, bi bi-building, etc.</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Vista previa del icono:</label>
+                                <div id="icon-preview" style="font-size: 2rem; color: #667eea; min-height: 40px;">
+                                    <i class="bi bi-question-circle"></i>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" onclick="guardarNuevaCategoria()">
+                            <i class="bi bi-check-circle"></i> Crear Categoría
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    $('body').append(modalHTML);
+    $('#crearCategoriaModal').modal('show');
+    
+    // Preview de icono
+    $('#new-cat-icono').on('input', function() {
+        const iconClass = $(this).val().trim();
+        if (iconClass) {
+            $('#icon-preview').html(`<i class="${iconClass}"></i>`);
+        } else {
+            $('#icon-preview').html('<i class="bi bi-question-circle"></i>');
+        }
+    });
+    
+    $('#crearCategoriaModal').on('hidden.bs.modal', function () {
+        $(this).remove();
+    });
+}
+
+function guardarNuevaCategoria() {
+    const data = {
+        nombre: $('#new-cat-nombre').val().trim(),
+        descripcion: $('#new-cat-descripcion').val().trim(),
+        icono: $('#new-cat-icono').val().trim()
+    };
+
+    if (!data.nombre) {
+        showError('Campo requerido', 'El nombre es obligatorio');
+        return;
+    }
+
+    showLoading('Creando categoría...');
+
+    $.ajax({
+        url: '../api/admin/categorias.php',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function (response) {
+            Swal.close();
+            if (response.success) {
+                $('#crearCategoriaModal').modal('hide');
+                showSuccess('¡Creada!', 'Categoría creada correctamente');
+                loadCategorias();
+            } else {
+                showError('Error', response.message || 'No se pudo crear');
+            }
+        },
+        error: function () {
+            Swal.close();
+            showError('Error', 'Error al crear categoría');
+        }
+    });
+}
+
+function editarCategoria(id) {
+    $.ajax({
+        url: '../api/admin/categorias.php',
+        method: 'GET',
+        success: function (response) {
+            if (response.success) {
+                const categoria = response.data.find(c => (c.id_categoria == id || c.id == id));
+                if (categoria) {
+                    showEditarCategoriaModal(categoria);
+                } else {
+                    showError('Error', 'Categoría no encontrada');
+                }
+            }
+        }
+    });
+}
+
+function showEditarCategoriaModal(cat) {
+    const catId = cat.id_categoria || cat.id;
+
+    const modalHTML = `
+        <div class="modal fade" id="editarCategoriaModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar Categoría: ${cat.nombre}</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editarCategoriaForm">
+                            <input type="hidden" id="edit-cat-id" value="${catId}">
+                            <div class="form-group">
+                                <label><i class="bi bi-tag"></i> Nombre *</label>
+                                <input type="text" class="form-control" id="edit-cat-nombre" value="${cat.nombre}" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="bi bi-file-text"></i> Descripción</label>
+                                <textarea class="form-control" id="edit-cat-descripcion" rows="3">${cat.descripcion || ''}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="bi bi-palette"></i> Icono</label>
+                                <input type="text" class="form-control" id="edit-cat-icono" value="${cat.icono || ''}" placeholder="Ej: bi bi-tree">
+                                <small class="text-muted">Clases de Bootstrap Icons</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Vista previa:</label>
+                                <div id="edit-icon-preview" style="font-size: 2rem; color: #667eea; min-height: 40px;">
+                                    ${cat.icono ? `<i class="${cat.icono}"></i>` : '<i class="bi bi-question-circle"></i>'}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" onclick="guardarCategoriaEditada()">
+                            <i class="bi bi-check-circle"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    $('body').append(modalHTML);
+    $('#editarCategoriaModal').modal('show');
+    
+    // Preview de icono
+    $('#edit-cat-icono').on('input', function() {
+        const iconClass = $(this).val().trim();
+        if (iconClass) {
+            $('#edit-icon-preview').html(`<i class="${iconClass}"></i>`);
+        } else {
+            $('#edit-icon-preview').html('<i class="bi bi-question-circle"></i>');
+        }
+    });
+    
+    $('#editarCategoriaModal').on('hidden.bs.modal', function () {
+        $(this).remove();
+    });
+}
+
+function guardarCategoriaEditada() {
+    const data = {
+        id: $('#edit-cat-id').val(),
+        nombre: $('#edit-cat-nombre').val().trim(),
+        descripcion: $('#edit-cat-descripcion').val().trim(),
+        icono: $('#edit-cat-icono').val().trim()
+    };
+
+    if (!data.nombre) {
+        showError('Campo requerido', 'El nombre es obligatorio');
+        return;
+    }
+
+    showLoading('Guardando cambios...');
+
+    $.ajax({
+        url: '../api/admin/categorias.php',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function (response) {
+            Swal.close();
+            if (response.success) {
+                $('#editarCategoriaModal').modal('hide');
+                showSuccess('¡Actualizada!', 'Categoría actualizada correctamente');
+                loadCategorias();
+            } else {
+                showError('Error', response.message || 'No se pudo actualizar');
+            }
+        },
+        error: function (xhr) {
+            Swal.close();
+            let msg = 'Error al actualizar categoría';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                msg += ': ' + xhr.responseJSON.message;
+            }
+            showError('Error', msg);
+        }
+    });
+}
+
+function eliminarCategoria(id, nombre, totalLugares) {
+    if (totalLugares > 0) {
+        showError(
+            'No se puede eliminar',
+            `La categoría "${nombre}" tiene ${totalLugares} lugares asociados. Debes reasignar o eliminar esos lugares primero.`
+        );
+        return;
+    }
+
+    showConfirm(
+        '¿Eliminar categoría?',
+        `¿Estás seguro de eliminar la categoría "${nombre}"?`,
+        'Sí, eliminar'
+    ).then((result) => {
+        if (result.isConfirmed) {
+            showLoading('Eliminando categoría...');
+            
+            $.ajax({
+                url: '../api/admin/categorias.php',
+                method: 'DELETE',
+                contentType: 'application/json',
+                data: JSON.stringify({ id }),
+                success: function (response) {
+                    Swal.close();
+                    if (response.success) {
+                        showSuccess('¡Eliminada!', 'Categoría eliminada correctamente');
+                        loadCategorias();
+                    } else {
+                        showError('Error', response.message || 'No se pudo eliminar');
+                    }
+                },
+                error: function () {
+                    Swal.close();
+                    showError('Error', 'Error al eliminar categoría');
+                }
+            });
+        }
+    });
+}
+
+// ============ DEPARTAMENTOS ============
+function loadDepartamentos() {
+    $.ajax({
+        url: '../api/admin/departamentos.php',
+        method: 'GET',
+        success: function (response) {
+            if (response.success) {
+                window.currentDepartamentos = response.data;
+                renderDepartamentosTable(response.data);
+            }
+        },
+        error: function () {
+            showError('Error', 'No se pudieron cargar los departamentos');
+        }
+    });
+}
+
+function renderDepartamentosTable(departamentos) {
+    if (departamentos.length === 0) {
+        $('#departamentos-table-container').html('<p class="text-muted">No hay departamentos</p>');
+        return;
+    }
+
+    let html = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Lugares</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    departamentos.forEach(dep => {
+        html += `
+            <tr>
+                <td>${dep.id}</td>
+                <td><strong>${dep.nombre}</strong></td>
+                <td>${dep.total_lugares}</td>
+                <td>
+                    <button class="btn-admin btn-admin-sm btn-admin-primary" onclick="editarDepartamento(${dep.id})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn-admin btn-admin-sm btn-admin-danger" onclick="eliminarDepartamento(${dep.id}, '${dep.nombre}', ${dep.total_lugares})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+
+    $('#departamentos-table-container').html(html);
+}
 
 function editarDepartamento(id) {
     if (window.currentDepartamentos) {
@@ -1229,7 +1277,8 @@ function editarDepartamento(id) {
         if (dep) showEditarDepartamentoModal(dep);
     } else {
         $.ajax({
-            url: '../api/admin/departamentos.php', success: (res) => {
+            url: '../api/admin/departamentos.php',
+            success: (res) => {
                 if (res.success) {
                     const dep = res.data.find(d => d.id == id);
                     if (dep) showEditarDepartamentoModal(dep);
@@ -1245,7 +1294,7 @@ function showEditarDepartamentoModal(dep) {
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Editar Departamento</h5>
+                        <h5 class="modal-title">Editar Departamento: ${dep.nombre}</h5>
                         <button type="button" class="close" data-dismiss="modal">
                             <span>&times;</span>
                         </button>
@@ -1254,14 +1303,16 @@ function showEditarDepartamentoModal(dep) {
                         <form id="editarDepartamentoForm">
                             <input type="hidden" id="edit-dep-id" value="${dep.id}">
                             <div class="form-group">
-                                <label>Nombre</label>
+                                <label><i class="bi bi-map"></i> Nombre *</label>
                                 <input type="text" class="form-control" id="edit-dep-nombre" value="${dep.nombre}" required>
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-primary" onclick="guardarDepartamentoEditado()">Guardar</button>
+                        <button type="button" class="btn btn-primary" onclick="guardarDepartamentoEditado()">
+                            <i class="bi bi-check-circle"></i> Guardar Cambios
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1278,8 +1329,15 @@ function showEditarDepartamentoModal(dep) {
 function guardarDepartamentoEditado() {
     const data = {
         id: $('#edit-dep-id').val(),
-        nombre: $('#edit-dep-nombre').val()
+        nombre: $('#edit-dep-nombre').val().trim()
     };
+
+    if (!data.nombre) {
+        showError('Campo requerido', 'El nombre es obligatorio');
+        return;
+    }
+
+    showLoading('Guardando cambios...');
 
     $.ajax({
         url: '../api/admin/departamentos.php',
@@ -1287,10 +1345,135 @@ function guardarDepartamentoEditado() {
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function (response) {
-            $('#editarDepartamentoModal').modal('hide');
-            showSuccess('Departamento actualizado');
-            loadDepartamentos();
+            Swal.close();
+            if (response.success) {
+                $('#editarDepartamentoModal').modal('hide');
+                showSuccess('¡Actualizado!', 'Departamento actualizado correctamente');
+                loadDepartamentos();
+            } else {
+                showError('Error', response.message || 'No se pudo actualizar');
+            }
         },
-        error: () => showError('Error al actualizar')
+        error: () => {
+            Swal.close();
+            showError('Error', 'Error al actualizar');
+        }
     });
+}
+
+function eliminarDepartamento(id, nombre, totalLugares) {
+    if (totalLugares > 0) {
+        showError(
+            'No se puede eliminar',
+            `El departamento "${nombre}" tiene ${totalLugares} lugares asociados. Debes reasignar o eliminar esos lugares primero.`
+        );
+        return;
+    }
+
+    showConfirm(
+        '¿Eliminar departamento?',
+        `¿Estás seguro de eliminar el departamento "${nombre}"?`,
+        'Sí, eliminar'
+    ).then((result) => {
+        if (result.isConfirmed) {
+            showLoading('Eliminando departamento...');
+            
+            $.ajax({
+                url: '../api/admin/departamentos.php',
+                method: 'DELETE',
+                contentType: 'application/json',
+                data: JSON.stringify({ id }),
+                success: function (response) {
+                    Swal.close();
+                    if (response.success) {
+                        showSuccess('¡Eliminado!', 'Departamento eliminado correctamente');
+                        loadDepartamentos();
+                    } else {
+                        showError('Error', response.message || 'No se pudo eliminar');
+                    }
+                },
+                error: function () {
+                    Swal.close();
+                    showError('Error', 'Error al eliminar departamento');
+                }
+            });
+        }
+    });
+}
+
+// ============ REFRESH FUNCTIONS ============
+function refreshUsuarios() { loadUsuarios(); }
+function refreshLugares() { loadLugares(); }
+function refreshSugerencias() { loadSugerencias(); }
+function refreshComentarios() { loadComentarios(); }
+
+// ============ UTILITY FUNCTIONS ============
+function renderPagination(pagination, loadFunction) {
+    if (pagination.total_pages <= 1) return '';
+
+    let html = '<div class="admin-pagination">';
+
+    html += `<button ${pagination.page === 1 ? 'disabled' : ''} onclick="${loadFunction}(${pagination.page - 1})">
+        <i class="bi bi-chevron-left"></i>
+    </button>`;
+
+    for (let i = 1; i <= pagination.total_pages; i++) {
+        if (i === pagination.page) {
+            html += `<button class="active">${i}</button>`;
+        } else if (i === 1 || i === pagination.total_pages || Math.abs(i - pagination.page) <= 2) {
+            html += `<button onclick="${loadFunction}(${i})">${i}</button>`;
+        } else if (i === pagination.page - 3 || i === pagination.page + 3) {
+            html += `<button disabled>...</button>`;
+        }
+    }
+
+    html += `<button ${pagination.page === pagination.total_pages ? 'disabled' : ''} onclick="${loadFunction}(${pagination.page + 1})">
+        <i class="bi bi-chevron-right"></i>
+    </button>`;
+
+    html += '</div>';
+    return html;
+}
+
+function getRolBadgeClass(rol) {
+    switch (rol) {
+        case 'admin': return 'danger';
+        case 'emprendedor': return 'primary';
+        default: return 'info';
+    }
+}
+
+function getEstadoBadgeClass(estado) {
+    switch (estado) {
+        case 'activo':
+        case 'aprobado': return 'success';
+        case 'pendiente': return 'warning';
+        case 'suspendido':
+        case 'rechazado':
+        case 'inactivo': return 'danger';
+        default: return 'info';
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    return date.toLocaleDateString('es-AR', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }

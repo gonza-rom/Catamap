@@ -64,8 +64,11 @@ if(!$admin_data) {
     <!-- Admin Styles -->
     <link rel="stylesheet" href="../styles/admin.css">
     
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
 <body class="admin-page">
     <div class="admin-container">
