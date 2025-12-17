@@ -328,7 +328,6 @@ $result_lugares = $stmt->get_result();
                     </a>
                     <div class="dropdown-menu dropdown-menu-right">
                         <a class="dropdown-item" href="perfil.php"><i class="bi bi-person"></i> Mi Perfil</a>
-                        <a class="dropdown-item" href="#" id="btnFavoritosNav"><i class="bi bi-star"></i> Mis Favoritos</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="#" id="btnLogout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a>
                     </div>
@@ -436,7 +435,7 @@ $result_lugares = $stmt->get_result();
             if ($result_lugares->num_rows > 0):
                 while ($lugar = $result_lugares->fetch_assoc()): 
                     $esFavorito = in_array($lugar['id'], $favoritos);
-                    $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeholder.jpg';
+                    $imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeholder.webp';
             ?>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="package-item bg-white mb-2 position-relative">
@@ -452,7 +451,7 @@ $result_lugares = $stmt->get_result();
                             <?php echo htmlspecialchars($lugar['categoria_nombre']); ?>
                         </span>
                         
-                        <img class="img-fluid" src="<?php echo $imagenUrl; ?>" alt="<?php echo htmlspecialchars($lugar['nombre']); ?>" onerror="this.src='../img/placeholder.jpg'">
+                        <img class="img-fluid" src="<?php echo $imagenUrl; ?>" alt="<?php echo htmlspecialchars($lugar['nombre']); ?>" onerror="this.src='../img/placeholder.webp'">
                         
                         <div class="p-4">
                             <div class="d-flex justify-content-between mb-3">

@@ -105,7 +105,7 @@ $resultado_prom = $stmt_prom->get_result()->fetch_assoc();
 $promedio_calificacion = $resultado_prom['promedio'] ? round($resultado_prom['promedio'], 1) : 0;
 $total_comentarios = $resultado_prom['total'];
 
-$imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeholder.jpg';
+$imagenUrl = $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeholder.webp';
 ?>
 <!DOCTYPE html>
 <html lang="es">

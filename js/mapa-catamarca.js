@@ -182,7 +182,7 @@ window.trazarRuta = function(destLat, destLng, btn) {
 // FUNCIÓN PARA CREAR CONTENIDO DE POPUP
 // ============================================
 function crearPopupContenido(lugar) {
-  const imagenUrl = lugar.imagen ? `../uploads/${lugar.imagen}` : '../img/placeholder.jpg';
+  const imagenUrl = lugar.imagen ? `../uploads/${lugar.imagen}` : '../img/placeholder.webp';
   
   // Botón de favoritos solo si hay usuario logueado
   let favoritoBtn = '';
@@ -207,7 +207,7 @@ function crearPopupContenido(lugar) {
       <img src="${imagenUrl}" 
            alt="${lugar.nombre}" 
            style="width:100%; max-width:200px; height:150px; object-fit:cover; border-radius:8px; margin-bottom:10px;"
-           onerror="this.src='../img/placeholder.jpg'">
+           onerror="this.src='../img/placeholder.webp'">
       <h4 style="font-size: 1rem ; margin: 8px 0; color: #333;">${lugar.nombre}</h4>
       <p style="color: #666; font-size: 0.9rem; margin: 5px 0;">${lugar.descripcion}</p>
       <p style="margin: 5px 0; color: #555;">

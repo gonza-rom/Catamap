@@ -51,7 +51,7 @@ try {
             'lugar_nombre' => $row['lugar_nombre'],
             'calificacion' => intval($row['calificacion']),
             'comentario' => $row['comentario'],
-            'aprobado' => intval($row['aprobado']),
+            'estado' => $row['estado'],
             'fecha_creacion' => date('d/m/Y H:i', strtotime($row['fecha_creacion']))
         ];
     }

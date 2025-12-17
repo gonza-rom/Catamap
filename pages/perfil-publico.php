@@ -354,10 +354,10 @@ while($row = $result_insignias->fetch_assoc()) {
                     <?php foreach($favoritos as $lugar): ?>
                         <div class="col-md-4 mb-3">
                             <div class="lugar-card">
-                                <img src="<?php echo $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeholder.jpg'; ?>" 
+                                <img src="<?php echo $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeholder.webp'; ?>" 
                                     class="lugar-img" 
                                     alt="<?php echo htmlspecialchars($lugar['nombre']); ?>"
-                                    onerror="this.src=' ../img/placeholder.jpg'">
+                                    onerror="this.src=' ../img/placeholder.webp'">
                                 <div class="lugar-content">
                                     <h6 class="font-weight-bold"><?php echo htmlspecialchars($lugar['nombre']); ?></h6>
                                     <p class="text-muted small mb-0">
@@ -394,7 +394,7 @@ while($row = $result_insignias->fetch_assoc()) {
                     <?php foreach($lugares_sugeridos as $lugar): ?>
                         <div class="col-md-4 mb-3">
                             <div class="lugar-card">
-                                <img src="<?php echo $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeholder.jpg'; ?>" 
+                                <img src="<?php echo $lugar['imagen'] ? '../uploads/'.$lugar['imagen'] : '../img/placeholder.webp'; ?>" 
                                      class="lugar-img" 
                                      alt="<?php echo htmlspecialchars($lugar['nombre']); ?>">
                                 <div class="lugar-content">

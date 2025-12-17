@@ -154,10 +154,10 @@ const Favoritos = {
 
                 let html = '';
                 data.data.forEach(lugar => {
-                    const imagenUrl = lugar.imagen ? `../uploads/${lugar.imagen}` : '../img/placeholder.jpg';
+                    const imagenUrl = lugar.imagen ? `../uploads/${lugar.imagen}` : '../img/placeholder.webp';
                     html += `
                         <div class="favorito-item" data-lugar-id="${lugar.id_lugar}" onclick="Favoritos.irALugar(${lugar.lat}, ${lugar.lng}, ${lugar.id_lugar})">
-                            <img src="${imagenUrl}" alt="${lugar.nombre}" onerror="this.src='../img/placeholder.jpg'">
+                            <img src="${imagenUrl}" alt="${lugar.nombre}" onerror="this.src='../img/placeholder.webp'">
                             <div class="favorito-item-info">
                                 <h4>${lugar.nombre}</h4>
                                 <p><i class="bi bi-geo-alt"></i> ${lugar.departamento || 'Catamarca'}</p>

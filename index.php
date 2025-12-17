@@ -154,101 +154,79 @@
     </div>
     <div class="gallary row">
         <div class="col-sm-6 col-lg-3 gallary-item wow fadeIn">
-            <img src="img-catamarca/tuneles-merced.JPG" alt="template by DevCRID http://www.devcrud.com/" class="gallary-img">
-            <a href="#" class="gallary-overlay">
+            <img src="img-catamarca/tuneles-merced.JPG" alt="Lugar Turistico" class="gallary-img">
+            <a href="#" class="gallary-overlay" data-img="img-catamarca/tuneles-merced.JPG">
                 <i class="gallary-icon ti-plus"></i>
             </a>
         </div>
         <div class="col-sm-6 col-lg-3 gallary-item wow fadeIn">
-            <img src="img-catamarca/termas-de-fiambala.jpg" alt="template by DevCRID http://www.devcrud.com/" class="gallary-img">
-            <a href="#" class="gallary-overlay">
+            <img src="img-catamarca/termas-de-fiambala.jpg" alt="Lugar Turistico" class="gallary-img">
+            <a href="#" class="gallary-overlay" data-img="img-catamarca/termas-de-fiambala.jpg">
                 <i class="gallary-icon ti-plus"></i>
             </a>
         </div>
         <div class="col-sm-6 col-lg-3 gallary-item wow fadeIn">
-            <img src="img-catamarca/salton-balcozna.JPG" alt="template by DevCRID http://www.devcrud.com/" class="gallary-img">
-            <a href="#" class="gallary-overlay">
+            <img src="img-catamarca/salton-balcozna.JPG" alt="Lugar Turistico" class="gallary-img">
+            <a href="#" class="gallary-overlay" data-img="img-catamarca/salton-balcozna.JPG">
                 <i class="gallary-icon ti-plus"></i>
             </a>
         </div>
         <div class="col-sm-6 col-lg-3 gallary-item wow fadeIn">
-            <img src="img-catamarca/ruta-de-los-seismiles.jpg" alt="template by DevCRID http://www.devcrud.com/" class="gallary-img">
-            <a href="#" class="gallary-overlay">
+            <img src="img-catamarca/ruta-de-los-seismiles.jpg" alt="Lugar Turistico" class="gallary-img">
+            <a href="#" class="gallary-overlay" data-img="img-catamarca/ruta-de-los-seismiles.jpg">
                 <i class="gallary-icon ti-plus"></i>
             </a>
         </div>
         <div class="col-sm-6 col-lg-3 gallary-item wow fadeIn">
-            <img src="img-catamarca/Plaza_25_de_Mayo.jpeg" alt="template by DevCRID http://www.devcrud.com/" class="gallary-img">
-            <a href="#" class="gallary-overlay">
+            <img src="img-catamarca/Plaza_25_de_Mayo.jpeg" alt="Lugar Turistico" class="gallary-img">
+            <a href="#" class="gallary-overlay" data-img="img-catamarca/Plaza_25_de_Mayo.jpeg">
                 <i class="gallary-icon ti-plus"></i>
             </a>
         </div>
         <div class="col-sm-6 col-lg-3 gallary-item wow fadeIn">
-            <img src="img-catamarca/Mirador-Jumeal.jpg" alt="template by DevCRID http://www.devcrud.com/" class="gallary-img">
-            <a href="#" class="gallary-overlay">
+            <img src="img-catamarca/Mirador-Jumeal.jpg" alt="Lugar Turistico" class="gallary-img">
+            <a href="#" class="gallary-overlay" data-img="img-catamarca/Mirador-Jumeal.jpg">
                 <i class="gallary-icon ti-plus"></i>
             </a>
         </div>
         <div class="col-sm-6 col-lg-3 gallary-item wow fadeIn">
-            <img src="img-catamarca/dique-collagasta.jpg" alt="template by DevCRID http://www.devcrud.com/" class="gallary-img">
-            <a href="#" class="gallary-overlay">
+            <img src="img-catamarca/dique-collagasta.jpg" alt="Lugar Turistico" class="gallary-img">
+            <a href="#" class="gallary-overlay" data-img="img-catamarca/dique-collagasta.jpg">
+                <i class="gallary-icon ti-plus"></i>
+            </a>    
+        </div>
+        <div class="col-sm-6 col-lg-3 gallary-item wow fadeIn">
+            <img src="img-catamarca/dunas-taton.jpg" alt="Lugar Turistico" class="gallary-img">
+            <a href="#" class="gallary-overlay" data-img="img-catamarca/dunas-taton.jpg">
                 <i class="gallary-icon ti-plus"></i>
             </a>
         </div>
         <div class="col-sm-6 col-lg-3 gallary-item wow fadeIn">
-            <img src="img-catamarca/dunas-taton.jpg" alt="template by DevCRID http://www.devcrud.com/" class="gallary-img">
-            <a href="#" class="gallary-overlay">
+            <img src="img-catamarca/ruta-adobe.jpg" alt="Lugar Turistico" class="gallary-img">
+            <a href="#" class="gallary-overlay" data-img="img-catamarca/ruta-adobe.jpg">
                 <i class="gallary-icon ti-plus"></i>
             </a>
         </div>
         <div class="col-sm-6 col-lg-3 gallary-item wow fadeIn">
-            <img src="img-catamarca/ruta-adobe.jpg" alt="template by DevCRID http://www.devcrud.com/" class="gallary-img">
-            <a href="#" class="gallary-overlay">
+            <img src="img-catamarca/rodeo.jpg" alt="Lugar Turistico" class="gallary-img">
+            <a href="#" class="gallary-overlay" data-img="img-catamarca/rodeo.jpg">
                 <i class="gallary-icon ti-plus"></i>
             </a>
         </div>
         <div class="col-sm-6 col-lg-3 gallary-item wow fadeIn">
-            <img src="img-catamarca/rodeo.jpg" alt="template by DevCRID http://www.devcrud.com/" class="gallary-img">
-            <a href="#" class="gallary-overlay">
+            <img src="img-catamarca/Pirquitas.jpeg" alt="Lugar Turistico" class="gallary-img">
+            <a href="#" class="gallary-overlay" data-img="img-catamarca/Pirquitas.jpeg">
                 <i class="gallary-icon ti-plus"></i>
             </a>
         </div>
         <div class="col-sm-6 col-lg-3 gallary-item wow fadeIn">
-            <img src="img-catamarca/Pirquitas.jpeg" alt="template by DevCRID http://www.devcrud.com/" class="gallary-img">
-            <a href="#" class="gallary-overlay">
-                <i class="gallary-icon ti-plus"></i>
-            </a>
-        </div>
-        <div class="col-sm-6 col-lg-3 gallary-item wow fadeIn">
-            <img src="img-catamarca/cuesta-la-chilca.jpg" alt="template by DevCRID http://www.devcrud.com/" class="gallary-img">
-            <a href="#" class="gallary-overlay">
+            <img src="img-catamarca/cuesta-la-chilca.jpg" alt="Lugar Turistico" class="gallary-img">
+            <a href="#" class="gallary-overlay" data-img="img-catamarca/cuesta-la-chilca.jpg">
                 <i class="gallary-icon ti-plus"></i>
             </a>
         </div>
     </div>
 
-    <!-- book a table Section  -->
-    <div class="container-fluid has-bg-overlay text-center text-light has-height-lg middle-items" id="book-table">
-        <div class="">
-            <h2 class="section-title mb-5">Sumate a Catamap</h2>
-            <p class="mb-4 text-light">¿Tenés un emprendimiento, alojamiento o querés ser parte del proyecto? Completá tus datos y nos pondremos en contacto.</p>
-            <div class="row mb-5">
-                <div class="col-sm-6 col-md-3 col-xs-12 my-2">
-                    <input type="email" id="booktable" class="form-control form-control-lg custom-form-control" placeholder="EMAIL">
-                </div>
-                <div class="col-sm-6 col-md-3 col-xs-12 my-2">
-                    <input type="number" id="booktable" class="form-control form-control-lg custom-form-control" placeholder="NUMBER OF GUESTS" max="20" min="0">
-                </div>
-                <div class="col-sm-6 col-md-3 col-xs-12 my-2">
-                    <input type="time" id="booktable" class="form-control form-control-lg custom-form-control" placeholder="EMAIL">
-                </div>
-                <div class="col-sm-6 col-md-3 col-xs-12 my-2">
-                    <input type="date" id="booktable" class="form-control form-control-lg custom-form-control" placeholder="12/12/12">
-                </div>
-            </div>
-            <a href="#" class="btn btn-lg btn-primary" id="rounded-btn">Enviar Información</a>
-        </div>
-    </div>
     <!-- Destination Start -->
     <div id="destinos" class="container-fluid py-5">
         <div class="container pt-5 pb-3">
@@ -260,54 +238,54 @@
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="destination-item position-relative overflow-hidden mb-2">
                         <img class="img-fluid" src="img-catamarca/mirador-cuesta-del-valle.jpg" alt="">
-                        <a class="destination-overlay text-white text-decoration-none" href="">
+                        <a class="destination-overlay text-white text-decoration-none" href="http://localhost/catamap/pages/detalle-lugar.php?id=3">
                             <h5 class="text-white">Cuesta del Portezuelo</h5>
-                            <span>100 Cities</span>
+                            <span>Valle Viejo</span>
                         </a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="destination-item position-relative overflow-hidden mb-2">
                         <img class="img-fluid" src="img-catamarca/Plaza_25_de_Mayo.jpeg" alt="">
-                        <a class="destination-overlay text-white text-decoration-none" href="">
+                        <a class="destination-overlay text-white text-decoration-none" href="http://localhost/catamap/pages/detalle-lugar.php?id=26">
                             <h5 class="text-white">Plaza 25 de Mayo</h5>
-                            <span>100 Cities</span>
+                            <span>Capital</span>
                         </a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="destination-item position-relative overflow-hidden mb-2">
                         <img class="img-fluid" src="img-catamarca/termas-de-fiambala.jpg" alt="">
-                        <a class="destination-overlay text-white text-decoration-none" href="">
+                        <a class="destination-overlay text-white text-decoration-none" href="http://localhost/catamap/pages/detalle-lugar.php?id=9">
                             <h5 class="text-white">Termas de Fiambalá</h5>
-                            <span>100 Cities</span>
+                            <span>Tinogasta</span>
                         </a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="destination-item position-relative overflow-hidden mb-2">
                         <img class="img-fluid" src="img-catamarca/rodeo.jpg" alt="">
-                        <a class="destination-overlay text-white text-decoration-none" href="">
+                        <a class="destination-overlay text-white text-decoration-none" href="http://localhost/catamap/pages/detalle-lugar.php?id=27">
                             <h5 class="text-white">El Rodeo</h5>
-                            <span>100 Cities</span>
+                            <span>Ambato</span>
                         </a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="destination-item position-relative overflow-hidden mb-2">
                         <img class="img-fluid" src="img-catamarca/cuesta-la-chilca.jpg" alt="">
-                        <a class="destination-overlay text-white text-decoration-none" href="">
+                        <a class="destination-overlay text-white text-decoration-none" href="http://localhost/catamap/pages/detalle-lugar.php?id=36">
                             <h5 class="text-white">Cuesta La Chilca</h5>
-                            <span>100 Cities</span>
+                            <span>Andalgala</span>
                         </a>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="destination-item position-relative overflow-hidden mb-2">
                         <img class="img-fluid" src="img-catamarca/dique-el-jumeal.webp" alt="">
-                        <a class="destination-overlay text-white text-decoration-none" href="">
+                        <a class="destination-overlay text-white text-decoration-none" href="http://localhost/catamap/pages/detalle-lugar.php?id=2">
                             <h5 class="text-white">Dique El Jumeal</h5>
-                            <span>100 Cities</span>
+                            <span>Capital</span>
                         </a>
                     </div>
                 </div>
@@ -364,54 +342,55 @@
     <!-- Service End -->
     <!-- REGISTRO / UNITE A CATAMAP -->
     <div class="container-fluid bg-registration py-5" style="margin: 90px 0;">
-    <div class="container py-5">
-        <div class="row align-items-center">
-        <div class="col-lg-7 mb-5 mb-lg-0">
-            <div class="mb-4">
-            <h6 class="text-primary text-uppercase" style="letter-spacing: 5px;">Participá</h6>
-            <h1 class="text-white">Sumate a <span class="text-primary">Catamap</span></h1>
+        <div class="container py-5">
+            <div class="row align-items-center">
+
+                <div class="col-lg-7 mb-5 mb-lg-0">
+                    <div class="mb-4">
+                        <h6 class="text-primary text-uppercase" style="letter-spacing: 5px;">Participá</h6>
+                        <h1 class="text-white">Sumate a <span class="text-primary">Catamap</span></h1>
+                    </div>
+                    <p class="text-white">
+                        Catamap es una plataforma colaborativa que conecta personas con los lugares más
+                        auténticos de Catamarca. Registrate para descubrir nuevos destinos, compartir
+                        experiencias, guardar favoritos y formar parte de una comunidad turística activa.
+                    </p>
+                    <ul class="list-inline text-white m-0">
+                        <li class="py-2">
+                            <i class="fa fa-check text-primary mr-3"></i>
+                            Explorá y descubrí turismo alternativo
+                        </li>
+                        <li class="py-2">
+                            <i class="fa fa-check text-primary mr-3"></i>
+                            Compartí opiniones y sugerí nuevos lugares
+                        </li>
+                        <li class="py-2">
+                            <i class="fa fa-check text-primary mr-3"></i>
+                            Conectá con otros viajeros
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="card border-0">
+                        <div class="card-header bg-primary text-center p-4">
+                            <h1 class="text-white m-0">Registrate Gratis</h1>
+                        </div>
+                        <div class="card-body rounded-bottom bg-white p-5 text-center">
+                            <p class="mb-4">
+                                Creá tu cuenta y empezá a explorar Catamarca de una forma diferente.
+                            </p>
+                            <a class="btn btn-primary btn-block py-3"
+                            data-toggle="modal"
+                            data-target="#loginModal">
+                            Crear cuenta en Catamap
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <p class="text-white">
-            Catamap conecta viajeros, emprendedores y amantes de la naturaleza con los lugares más
-            increíbles de Catamarca. Si tenés un emprendimiento turístico, querés promover tu zona o
-            simplemente colaborar con el mapa, ¡te invitamos a ser parte!
-            </p>
-            <ul class="list-inline text-white m-0">
-            <li class="py-2"><i class="fa fa-check text-primary mr-3"></i>Mostrá tu emprendimiento local</li>
-            <li class="py-2"><i class="fa fa-check text-primary mr-3"></i>Sumá nuevos puntos al mapa</li>
-            <li class="py-2"><i class="fa fa-check text-primary mr-3"></i>Conectá con turistas y guías</li>
-            </ul>
         </div>
-        <div class="col-lg-5">
-            <div class="card border-0">
-            <div class="card-header bg-primary text-center p-4">
-                <h1 class="text-white m-0">Unite Ahora</h1>
-            </div>
-            <div class="card-body rounded-bottom bg-white p-5">
-                <form>
-                <div class="form-group">
-                    <input type="text" class="form-control p-4" placeholder="Tu nombre" required />
-                </div>
-                <div class="form-group">
-                    <input type="email" class="form-control p-4" placeholder="Tu correo electrónico" required />
-                </div>
-                <div class="form-group">
-                    <select class="custom-select px-4" style="height: 47px;">
-                    <option selected>Seleccioná tu interés</option>
-                    <option value="1">Soy emprendedor turístico</option>
-                    <option value="2">Soy guía o viajero</option>
-                    <option value="3">Quiero colaborar con el mapa</option>
-                    </select>
-                </div>
-                <div>
-                    <button class="btn btn-primary btn-block py-3" type="submit">Enviar Solicitud</button>
-                </div>
-                </form>
-            </div>
-            </div>
-        </div>
-        </div>
-    </div>
     </div>
     <!-- FIN REGISTRO -->
 
@@ -613,6 +592,20 @@
     </div>
     <!-- Back to Top -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="fa fa-angle-double-up"></i></a>
+    <!-- MODAL GALERÍA -->
+<div class="modal fade" id="galleryModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content bg-dark border-0">
+            <div class="modal-body p-0 text-center">
+                <button type="button" class="close text-white position-absolute" 
+                        style="right: 15px; top: 10px;" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+                <img id="galleryModalImg" src="" class="img-fluid rounded" alt="Imagen ampliada">
+            </div>
+        </div>
+    </div>
+</div>
     <!-- end of page footer -->
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -634,5 +627,20 @@
     <script src="js/main.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/inicio-sesion.js"></script>
+    <script>
+    document.querySelectorAll('.gallary-overlay').forEach(item => {
+        item.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            const imgSrc = this.getAttribute('data-img');
+            const modalImg = document.getElementById('galleryModalImg');
+
+            modalImg.src = imgSrc;
+
+            $('#galleryModal').modal('show');
+        });
+    });
+</script>
+
 </body>
 </html>

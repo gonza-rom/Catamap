@@ -488,13 +488,6 @@ if(!empty($usuario_data['imagen_perfil']) && file_exists('../uploads/' . $usuari
                         <button type="submit" class="btn btn-primary btn-lg btn-block">
                             <i class="bi bi-check-circle"></i> Guardar Configuración de Privacidad
                         </button>
-
-                        <!-- Botón de debug (temporal) -->
-                        <button type="button" 
-                                class="btn btn-info btn-sm btn-block mt-2" 
-                                onclick="debugPrivacidad()">
-                            <i class="bi bi-bug"></i> Debug (Ver valores)
-                        </button>
                     </form>
                 </div>
             </div>
@@ -828,50 +821,61 @@ function quitarFavorito(idLugar) {
     });
 }
         // ========== CARGAR RESEÑAS ==========
-        function cargarResenas() {
-            $('#resenasContainer').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>');
-            
-            $.get('../api/obtener_resenas_usuario.php', function(data) {
-                if (data.success && data.resenas.length > 0) {
-                    let html = '';
-                    data.resenas.forEach(resena => {
-                        const estrellas = '★'.repeat(resena.calificacion) + '☆'.repeat(5 - resena.calificacion);
-                        html += `
-                            <div class="resena-card">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <h5><i class="bi bi-geo-alt"></i> ${resena.lugar_nombre}</h5>
-                                        <div class="rating-stars">${estrellas}</div>
-                                        <p class="mt-2">${resena.comentario}</p>
-                                        <small class="text-muted"><i class="bi bi-calendar"></i> ${resena.fecha_creacion}</small>
-                                        ${resena.aprobado ? '<span class="badge badge-aprobado ml-2">Aprobada</span>' : '<span class="badge badge-pendiente ml-2">Pendiente de aprobación</span>'}
-                                    </div>
-                                    <div class="ml-3">
-                                        <button class="btn btn-sm btn-warning btn-action" onclick="editarResena(${resena.id})">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger btn-action" onclick="eliminarResena(${resena.id})">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    $('#resenasContainer').html(html);
+       function cargarResenas() {
+    $('#resenasContainer').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>');
+    
+    $.get('../api/obtener_resenas_usuario.php', function(data) {
+        if (data.success && data.resenas.length > 0) {
+            let html = '';
+            data.resenas.forEach(resena => {
+                const estrellas = '★'.repeat(resena.calificacion) + '☆'.repeat(5 - resena.calificacion);
+                
+                // Determinar el badge según el estado
+                let badgeEstado = '';
+                if (resena.estado === 'aprobado') {
+                    badgeEstado = '<span class="badge badge-aprobado ml-2">Aprobada</span>';
+                } else if (resena.estado === 'rechazado') {
+                    badgeEstado = '<span class="badge badge-danger ml-2">Rechazada</span>';
                 } else {
-                    $('#resenasContainer').html(`
-                        <div class="empty-state">
-                            <i class="bi bi-star"></i>
-                            <h5>No has dejado reseñas aún</h5>
-                            <p>Comparte tu experiencia en los lugares que visites</p>
-                        </div>
-                    `);
+                    badgeEstado = '<span class="badge badge-pendiente ml-2">Pendiente de aprobación</span>';
                 }
-            }).fail(function() {
-                $('#resenasContainer').html('<div class="alert alert-danger">Error al cargar reseñas</div>');
+                
+                html += `
+                    <div class="resena-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h5><i class="bi bi-geo-alt"></i> ${resena.lugar_nombre}</h5>
+                                <div class="rating-stars">${estrellas}</div>
+                                <p class="mt-2">${resena.comentario}</p>
+                                <small class="text-muted"><i class="bi bi-calendar"></i> ${resena.fecha_creacion}</small>
+                                ${badgeEstado}
+                            </div>
+                            <div class="ml-3">
+                                <button class="btn btn-sm btn-warning btn-action" onclick="editarResena(${resena.id})">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger btn-action" onclick="eliminarResena(${resena.id})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
+            $('#resenasContainer').html(html);
+        } else {
+            $('#resenasContainer').html(`
+                <div class="empty-state">
+                    <i class="bi bi-star"></i>
+                    <h5>No has dejado reseñas aún</h5>
+                    <p>Comparte tu experiencia en los lugares que visites</p>
+                </div>
+            `);
         }
+    }).fail(function() {
+        $('#resenasContainer').html('<div class="alert alert-danger">Error al cargar reseñas</div>');
+    });
+}
 
         function editarResena(idResena) {
     $.ajax({
